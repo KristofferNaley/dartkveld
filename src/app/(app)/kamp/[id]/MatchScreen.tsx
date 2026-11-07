@@ -2,10 +2,12 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { getGameUi } from "@/components/games/registry";
+import { AnnouncementToast } from "@/components/AnnouncementToast";
 import { Keypad } from "@/components/Keypad";
 import { SharePanel } from "@/components/SharePanel";
 import { TurnBanner } from "@/components/TurnBanner";
 import { buttonClass, ErrorText } from "@/components/ui";
+import { useAnnouncement } from "@/hooks/useAnnouncement";
 import { useScoring } from "@/hooks/useScoring";
 import type { MatchDTO } from "@/lib/match-types";
 import { deleteMatchAction } from "./actions";
@@ -25,11 +27,13 @@ export function MatchScreen({
   const [shareToken, setShareToken] = useState<string | null | undefined>(undefined);
   const [deleting, startDelete] = useTransition();
   const ui = getGameUi(match.gameType);
+  const { announcement, dismiss } = useAnnouncement(match, state, game.dartsPerTurn);
   const token = shareToken === undefined ? confirmed.shareToken : shareToken;
   const winner = state.winnerTeamIndex !== null ? match.teams[state.winnerTeamIndex].name : null;
 
   return (
     <div className="space-y-4">
+      <AnnouncementToast announcement={announcement} onDismiss={dismiss} />
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
           <h1 className="truncate text-xl font-bold">{game.name}</h1>

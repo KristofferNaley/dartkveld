@@ -5,6 +5,8 @@ import { getGame } from "@/games";
 import { replay } from "@/games/core/engine";
 import { getGameUi } from "@/components/games/registry";
 import { TurnBanner } from "@/components/TurnBanner";
+import { AnnouncementToast } from "@/components/AnnouncementToast";
+import { useAnnouncement } from "@/hooks/useAnnouncement";
 import { useLiveMatch } from "@/hooks/useLiveMatch";
 import { useWakeLock } from "@/hooks/useWakeLock";
 import { setupFromMatch, type MatchDTO } from "@/lib/match-types";
@@ -15,6 +17,7 @@ export function TvScreen({ initial }: { initial: MatchDTO }) {
   const game = getGame(match.gameType);
   const ui = getGameUi(match.gameType);
   const state = useMemo(() => replay(game, setupFromMatch(match), match.throws), [game, match]);
+  const { announcement, dismiss } = useAnnouncement(match, state, game.dartsPerTurn);
   const [chrome, setChrome] = useState(true);
 
   // Skjul knappene etter litt, vis dem igjen ved bevegelse/trykk
@@ -41,6 +44,7 @@ export function TvScreen({ initial }: { initial: MatchDTO }) {
         <ui.TvBoard match={match} state={state} />
       </div>
       {ui.TvLegend && <ui.TvLegend />}
+      <AnnouncementToast announcement={announcement} size="tv" onDismiss={dismiss} />
 
       <div
         className={`absolute right-[1.5vh] top-[1.5vh] flex gap-2 transition-opacity ${chrome ? "opacity-100" : "pointer-events-none opacity-0"}`}
