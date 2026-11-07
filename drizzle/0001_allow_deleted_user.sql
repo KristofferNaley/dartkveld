@@ -1,0 +1,1 @@
+ALTER TABLE "player" DROP CONSTRAINT "player_user_or_guest";

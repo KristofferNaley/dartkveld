@@ -1,0 +1,32 @@
+services:
+  app:
+    build: .
+    image: dart:latest
+    container_name: dart
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      # Bare lokalt på verten; reverse proxy / tunnel tar seg av offentlig tilgang
+      - "127.0.0.1:${APP_PORT:-3014}:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-alpine
+    container_name: dart-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-dart}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Sett POSTGRES_PASSWORD i .env}
+      POSTGRES_DB: ${POSTGRES_DB:-dart}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:
