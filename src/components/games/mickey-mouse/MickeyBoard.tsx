@@ -1,4 +1,4 @@
-import { fieldStatusFor, isShut, MICKEY_TARGETS, type MickeyState } from "@/games/mickey-mouse/rules";
+import { closedCount, fieldStatusFor, isShut, MICKEY_TARGETS, type MickeyState } from "@/games/mickey-mouse/rules";
 import { teamColor } from "@/lib/colors";
 import { playerName, type MatchDTO } from "@/lib/match-types";
 import { Marks } from "../Marks";
@@ -13,7 +13,7 @@ export function MickeyBoard({ match, state, highlightTurn = true }: { match: Mat
       <table className="w-full border-collapse text-center">
         <thead>
           <tr className="border-b border-line">
-            <th className="w-16 px-2 py-2 text-left text-xs font-medium text-muted">Felt</th>
+            <th className="w-16 px-2 py-2 text-left text-xs font-medium text-muted">Lukket</th>
             {match.teams.map((t, i) => (
               <th
                 key={t.id}
@@ -25,7 +25,10 @@ export function MickeyBoard({ match, state, highlightTurn = true }: { match: Mat
                   {state.winnerTeamIndex === i && " 🏆"}
                 </div>
                 {i === current && <div className="truncate text-xs text-muted">{playerName(match, state.turn.playerId)}</div>}
-                <div className="tabular text-2xl font-bold">{state.teams[i].score}</div>
+                <div className="tabular text-2xl font-bold">
+                  {closedCount(state.teams[i])}
+                  <span className="text-sm font-medium text-muted">/{MICKEY_TARGETS.length}</span>
+                </div>
               </th>
             ))}
           </tr>
@@ -70,7 +73,7 @@ export function Legend({ big = false }: { big?: boolean }) {
         <Marks count={1} color="#cbd5e1" className={big ? "h-[3vh] w-[3vh]" : "h-4 w-4"} /> Åpent felt
       </span>
       <span className="flex items-center gap-1.5">
-        <span className={`rounded bg-white/15 ${big ? "h-[2.4vh] w-[2.4vh]" : "h-3 w-3"}`} /> Lukket (gir poeng)
+        <span className={`rounded bg-white/15 ${big ? "h-[2.4vh] w-[2.4vh]" : "h-3 w-3"}`} /> Lukket
       </span>
       <span className="flex items-center gap-1.5">
         <span className={`line-through ${big ? "" : ""}`}>20</span> Stengt (alle har lukket)
@@ -103,7 +106,10 @@ export function MickeyTvBoard({ match, state }: { match: MatchDTO; state: Mickey
             {t.name}
             {state.winnerTeamIndex === i && " 🏆"}
           </div>
-          <div className="tabular text-[clamp(2rem,10vh,12rem)] font-black leading-none">{state.teams[i].score}</div>
+          <div className="tabular text-[clamp(2rem,10vh,12rem)] font-black leading-none">
+            {closedCount(state.teams[i])}
+            <span className="text-[0.4em] font-bold text-white/50">/{MICKEY_TARGETS.length}</span>
+          </div>
         </div>
       ))}
       {MICKEY_TARGETS.map((f) => {

@@ -30,7 +30,7 @@ export default async function SharedResultPage({ params }: PageProps<"/r/[token]
   const { match, state, game, winnerIndex, scores, date } = r;
   const ui = getGameUi(match.gameType);
   const rounds = roundsSummary(state);
-  const ranked = [...scores].sort((a, b) => (a.index === winnerIndex ? -1 : b.index === winnerIndex ? 1 : b.score - a.score));
+  const ranked = [...scores].sort((a, b) => (a.index === winnerIndex ? -1 : b.index === winnerIndex ? 1 : 0));
 
   return (
     <main className="mx-auto max-w-3xl space-y-6 px-4 py-6 pb-12">
@@ -51,6 +51,7 @@ export default async function SharedResultPage({ params }: PageProps<"/r/[token]
             <div key={s.index} className="min-w-28 rounded-2xl bg-bg/60 px-4 py-3">
               <div className="truncate text-sm font-semibold" style={{ color: teamColor(s.index) }}>{s.name}</div>
               <div className="tabular text-3xl font-black">{s.score}</div>
+              <div className="text-xs text-muted">{r.scoreLabel}</div>
             </div>
           ))}
         </div>

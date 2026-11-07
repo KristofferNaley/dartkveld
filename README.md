@@ -89,9 +89,11 @@ src/
 
 ## Mickey Mouse-regler (slik de er implementert)
 
-- Feltene 20–12 og Bull teller. Tre treff lukker et felt (single 1, double 2, triple 3; Bull single 1, double 2).
-- Har laget lukket et felt og **minst én** motstander ikke har det, gir overskytende treff poeng (Bull = 25). Overskudd fra pila som lukker feltet teller også.
-- Et felt er stengt når alle lag har lukket det.
-- Vinner: det første laget som har lukket alt og har **minst like mange** poeng som hvert av de andre lagene. Ved likhet vinner laget som lukker alt.
-- Pilene som er igjen i runden etter vinnerkastet ignoreres.
+Reglene ligger i `src/games/mickey-mouse/rules.ts`, med tester ved siden av. Endrer du reglene der, følger resten av appen etter.
+
+- Feltene 20–12 og Bull teller, i valgfri rekkefølge.
+- Hvert treff teller 1, uansett single, double eller triple. Tastaturet har derfor ikke multiplikatorvalg.
+- Tre treff lukker et felt for laget. Treff på et felt laget allerede har lukket, teller ikke.
+- Et felt er stengt når alle lag har lukket det (vises på tavla).
+- Ingen poeng: laget som først lukker alle feltene, vinner med en gang. Pilene som er igjen i runden ignoreres.
 - Angre etter at kampen er ferdig gjenåpner den. Delingslenken trekkes da tilbake, og en ny lenke lages når kampen avsluttes igjen.

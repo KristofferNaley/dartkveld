@@ -25,6 +25,8 @@ export function Keypad({
   onUndo: () => void;
 }) {
   const [mult, setMult] = useState<Multiplier>(1);
+  // Spill der alle treff teller likt (f.eks. Mickey Mouse) trenger ikke multiplikatorvalg
+  const hasMultipliers = game.targets.some((f) => game.multipliersFor(f).length > 1);
 
   const hit = (field: Field) => {
     onDarts([{ field, multiplier: field === 0 ? 1 : mult }]);
@@ -33,6 +35,7 @@ export function Keypad({
 
   return (
     <div className="touch-pad space-y-2.5">
+      {hasMultipliers && (
       <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Multiplikator">
         {([1, 2, 3] as Multiplier[]).map((m) => (
           <button
@@ -56,6 +59,7 @@ export function Keypad({
           </button>
         ))}
       </div>
+      )}
 
       <div className="grid grid-cols-4 gap-2">
         {game.targets.map((f) => {
@@ -67,7 +71,7 @@ export function Keypad({
               disabled={disabled || !allowed}
               onClick={() => hit(f)}
               className={`tabular h-16 rounded-xl border border-line bg-panel-2 text-2xl font-black active:bg-accent active:text-accent-ink disabled:opacity-30 sm:h-20 sm:text-3xl ${
-                f === 25 ? "col-span-2 text-xl sm:text-2xl" : ""
+                f === 25 ? (hasMultipliers ? "col-span-2 text-xl sm:text-2xl" : "text-xl sm:text-2xl") : ""
               }`}
             >
               {mult === 2 && f !== 25 ? "D" : mult === 3 ? "T" : ""}

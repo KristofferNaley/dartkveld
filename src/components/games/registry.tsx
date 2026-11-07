@@ -1,6 +1,6 @@
 import type { ComponentType } from "react";
 import type { BaseGameState } from "@/games/core/types";
-import type { MickeyState } from "@/games/mickey-mouse/rules";
+import { closedCount, MICKEY_TARGETS, type MickeyState } from "@/games/mickey-mouse/rules";
 import type { MatchDTO } from "@/lib/match-types";
 import { Legend, MickeyBoard, MickeyTvBoard } from "./mickey-mouse/MickeyBoard";
 
@@ -12,8 +12,10 @@ export interface GameUi {
   /** Fullskjermtavle for TV/AirPlay */
   TvBoard: ComponentType<BoardProps>;
   TvLegend?: ComponentType;
-  /** Kort poengoppsummering per lag, f.eks. for delingssiden og OG-bildet */
-  scoreOf(state: BaseGameState, teamIndex: number): number;
+  /** Kort stilling per lag, f.eks. for delingssiden og OG-bildet */
+  scoreText(state: BaseGameState, teamIndex: number): string;
+  /** Hva stillingen betyr, f.eks. «felt lukket» eller «poeng igjen» */
+  scoreLabel: string;
 }
 
 /** Visningskomponenter per spill. Nye spill registreres her ved siden av src/games/index.ts. */
@@ -22,7 +24,8 @@ export const GAME_UI: Record<string, GameUi> = {
     Board: (p) => <MickeyBoard {...p} state={p.state as MickeyState} />,
     TvBoard: (p) => <MickeyTvBoard {...p} state={p.state as MickeyState} />,
     TvLegend: () => <Legend big />,
-    scoreOf: (s, i) => (s as MickeyState).teams[i].score,
+    scoreText: (s, i) => `${closedCount((s as MickeyState).teams[i])}/${MICKEY_TARGETS.length}`,
+    scoreLabel: "felt lukket",
   },
 };
 

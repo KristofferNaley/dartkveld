@@ -14,8 +14,8 @@ export const getSharedResult = cache(async (token: string) => {
   const game = getGame(match.gameType);
   const ui = getGameUi(match.gameType);
   const winnerIndex = state.winnerTeamIndex ?? 0;
-  const scores = match.teams.map((t, i) => ({ name: t.name, score: ui.scoreOf(state, i), index: i }));
+  const scores = match.teams.map((t, i) => ({ name: t.name, score: ui.scoreText(state, i), index: i }));
   const date = formatDate(match.finishedAt ?? match.createdAt);
-  const summary = scores.map((s) => `${s.name} ${s.score}`).join(" – ");
-  return { match, state, game, winnerIndex, winner: match.teams[winnerIndex], scores, date, summary };
+  const summary = `${scores.map((s) => `${s.name} ${s.score}`).join(" – ")} ${ui.scoreLabel}`;
+  return { scoreLabel: ui.scoreLabel, match, state, game, winnerIndex, winner: match.teams[winnerIndex], scores, date, summary };
 });

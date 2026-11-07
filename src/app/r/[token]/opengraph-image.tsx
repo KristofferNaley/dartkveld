@@ -65,7 +65,10 @@ export default async function OgImage({ params }: { params: Promise<{ token: str
               <div style={{ display: "flex", fontSize: 30, color: teamColor(s.index), overflow: "hidden", whiteSpace: "nowrap" }}>
                 {s.name.length > 16 ? `${s.name.slice(0, 15)}…` : s.name}
               </div>
-              <div style={{ display: "flex", fontSize: 72, fontWeight: 800 }}>{s.score}</div>
+              <div style={{ display: "flex", alignItems: "baseline", fontSize: 72, fontWeight: 800 }}>
+                {s.score}
+                <span style={{ fontSize: 26, color: "#8a99b3", marginLeft: 14 }}>{r.scoreLabel}</span>
+              </div>
             </div>
           ))}
         </div>
