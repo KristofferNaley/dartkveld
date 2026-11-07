@@ -91,9 +91,10 @@ src/
 
 Reglene ligger i `src/games/mickey-mouse/rules.ts`, med tester ved siden av. Endrer du reglene der, følger resten av appen etter.
 
-- Feltene 20–12 og Bull teller, i valgfri rekkefølge.
-- Hvert treff teller 1, uansett single, double eller triple. Tastaturet har derfor ikke multiplikatorvalg.
+- Feltene 20–15, Dobbel, Trippel og Bull teller, i valgfri rekkefølge. Dobbel er et treff hvor som helst i dobbelringen, og Trippel hvor som helst i trippelringen. Den som fører velger hvilket felt pila teller på.
+- Hvert treff teller 1. Tastaturet har derfor ikke multiplikatorvalg.
 - Tre treff lukker et felt for laget. Treff på et felt laget allerede har lukket, teller ikke.
 - Et felt er stengt når alle lag har lukket det (vises på tavla).
 - Ingen poeng: laget som først lukker alle feltene, vinner med en gang. Pilene som er igjen i runden ignoreres.
+- Kamper spilt med den første regelversjonen (20–12 og Bull) har spilltypen `mickey-mouse-10`. Den er skjult for nye kamper, men gamle kamper beholder reglene sine. Gjør det samme hvis reglene endres igjen på en måte som ville endret gamle resultater.
 - Angre etter at kampen er ferdig gjenåpner den. Delingslenken trekkes da tilbake, og en ny lenke lages når kampen avsluttes igjen.

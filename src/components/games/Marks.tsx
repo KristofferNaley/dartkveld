@@ -1,12 +1,26 @@
-/** Treffmerker som på en kritt-tavle: / for 1, X for 2, X i sirkel for lukket. */
-export function Marks({ count, color, className = "h-7 w-7" }: { count: number; color: string; className?: string }) {
-  const label = count >= 3 ? "lukket" : `${count} treff`;
+/**
+ * Treffmerking: tre plasser som fylles med en pil (🎯) per treff. Størrelsen følger
+ * font-size fra forelderen, så samme komponent brukes på mobil og TV.
+ */
+export function Marks({ count, muted = false, className = "" }: { count: number; muted?: boolean; className?: string }) {
+  const hits = Math.min(count, 3);
   return (
-    <svg viewBox="0 0 40 40" className={className} role="img" aria-label={label}>
-      {count === 0 && <circle cx="20" cy="20" r="2.5" fill="currentColor" opacity="0.25" />}
-      {count >= 1 && <line x1="10" y1="30" x2="30" y2="10" stroke={color} strokeWidth="5" strokeLinecap="round" />}
-      {count >= 2 && <line x1="10" y1="10" x2="30" y2="30" stroke={color} strokeWidth="5" strokeLinecap="round" />}
-      {count >= 3 && <circle cx="20" cy="20" r="17" fill="none" stroke={color} strokeWidth="4" />}
-    </svg>
+    <span
+      className={`inline-flex items-center justify-center gap-[0.12em] leading-none ${muted ? "opacity-35 grayscale" : ""} ${className}`}
+      role="img"
+      aria-label={hits >= 3 ? "lukket" : `${hits} av 3 treff`}
+    >
+      {[0, 1, 2].map((i) =>
+        i < hits ? (
+          <span key={i} className="inline-block w-[1.15em] text-center">
+            🎯
+          </span>
+        ) : (
+          <span key={i} className="inline-flex w-[1.15em] justify-center">
+            <span className="inline-block h-[0.42em] w-[0.42em] rounded-full border-[0.08em] border-white/25" />
+          </span>
+        ),
+      )}
+    </span>
   );
 }

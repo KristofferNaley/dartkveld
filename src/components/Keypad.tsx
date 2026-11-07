@@ -1,9 +1,9 @@
 "use client";
 import { useState } from "react";
+import { fieldName } from "@/games/core/engine";
 import type { Dart, Field, Game, Multiplier } from "@/games/core/types";
 
 const MULT_LABEL: Record<Multiplier, string> = { 1: "Single", 2: "Double", 3: "Triple" };
-const fieldLabel = (f: Field) => (f === 25 ? "Bull" : String(f));
 
 /**
  * Tastatur uavhengig av dartskive: velg multiplikator, trykk felt. Multiplikatoren
@@ -27,6 +27,10 @@ export function Keypad({
   const [mult, setMult] = useState<Multiplier>(1);
   // Spill der alle treff teller likt (f.eks. Mickey Mouse) trenger ikke multiplikatorvalg
   const hasMultipliers = game.targets.some((f) => game.multipliersFor(f).length > 1);
+  // Tre kolonner når feltene går opp (f.eks. 9 felt), ellers fire
+  const cols = !hasMultipliers && game.targets.length % 3 === 0 ? 3 : 4;
+  const cells = game.targets.length + (hasMultipliers ? 1 : 0); // Bull er dobbel bredde med multiplikatorer
+  const missSpan = cols - (cells % cols) || cols;
 
   const hit = (field: Field) => {
     onDarts([{ field, multiplier: field === 0 ? 1 : mult }]);
@@ -61,7 +65,7 @@ export function Keypad({
       </div>
       )}
 
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
         {game.targets.map((f) => {
           const allowed = game.multipliersFor(f).includes(mult);
           return (
@@ -71,11 +75,11 @@ export function Keypad({
               disabled={disabled || !allowed}
               onClick={() => hit(f)}
               className={`tabular h-16 rounded-xl border border-line bg-panel-2 text-2xl font-black active:bg-accent active:text-accent-ink disabled:opacity-30 sm:h-20 sm:text-3xl ${
-                f === 25 ? (hasMultipliers ? "col-span-2 text-xl sm:text-2xl" : "text-xl sm:text-2xl") : ""
+                f === 25 && hasMultipliers ? "col-span-2 text-xl sm:text-2xl" : f === 25 || f > 25 ? "text-xl sm:text-2xl" : ""
               }`}
             >
               {mult === 2 && f !== 25 ? "D" : mult === 3 ? "T" : ""}
-              {f === 25 && mult === 2 ? "Bullseye" : fieldLabel(f)}
+              {f === 25 && mult === 2 ? "Bullseye" : fieldName(f)}
             </button>
           );
         })}
@@ -83,7 +87,8 @@ export function Keypad({
           type="button"
           disabled={disabled}
           onClick={() => hit(0)}
-          className="col-span-2 h-16 rounded-xl border border-line bg-bg text-xl font-bold text-muted active:bg-line disabled:opacity-30 sm:h-20"
+          style={{ gridColumn: `span ${missSpan} / span ${missSpan}` }}
+          className="h-16 rounded-xl border border-line bg-bg text-xl font-bold text-muted active:bg-line disabled:opacity-30 sm:h-20"
         >
           Bom
         </button>

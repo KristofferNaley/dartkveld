@@ -1,8 +1,9 @@
 import { z } from "zod";
-import { GAME_TYPES } from "@/games";
+import { SELECTABLE_GAME_TYPES } from "@/games";
 
 export const dartSchema = z.object({
-  field: z.number().int().min(0).max(25),
+  // 0–20, 25 (bull), 102/103 (dobbel-/trippelringen). Spillet validerer hvilke felt som teller.
+  field: z.number().int().refine((f) => (f >= 0 && f <= 20) || f === 25 || f === 102 || f === 103, "Ugyldig felt"),
   multiplier: z.union([z.literal(1), z.literal(2), z.literal(3)]),
 });
 
@@ -24,7 +25,7 @@ export const newPlayerSchema = z.union([
 
 export const newMatchSchema = z
   .object({
-    gameType: z.enum(GAME_TYPES),
+    gameType: z.enum(SELECTABLE_GAME_TYPES),
     teams: z
       .array(z.object({ name, players: z.array(newPlayerSchema).min(1, "Hvert lag trenger minst én spiller").max(8) }))
       .min(2, "Velg minst 2 lag")

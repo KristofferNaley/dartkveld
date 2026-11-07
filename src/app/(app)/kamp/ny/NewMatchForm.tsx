@@ -1,6 +1,6 @@
 "use client";
 import { useState, useTransition } from "react";
-import { GAMES, type GameType } from "@/games";
+import { GAMES, SELECTABLE_GAME_TYPES, type GameType } from "@/games";
 import { teamColor } from "@/lib/colors";
 import { Button, Card, ErrorText, inputClass } from "@/components/ui";
 import { createMatchAction } from "./actions";
@@ -53,7 +53,7 @@ export function NewMatchForm({ users, me }: { users: User[]; me: User }) {
       <Card>
         <h2 className="mb-3 font-semibold">Spill</h2>
         <div className="grid gap-2 sm:grid-cols-2">
-          {(Object.keys(GAMES) as GameType[]).map((g) => (
+          {SELECTABLE_GAME_TYPES.map((g) => (
             <button
               key={g}
               type="button"

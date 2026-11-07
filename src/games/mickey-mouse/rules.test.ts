@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { formatDart, replay, roundsSummary, undoLast } from "../core/engine";
-import { BULL, GameRuleError, MISS, type Dart, type MatchSetup, type Multiplier } from "../core/types";
-import { closedCount, fieldStatusFor, isShut, MICKEY_TARGETS, mickeyMouse, type MickeyState } from "./rules";
+import { ANY_DOUBLE, ANY_TRIPLE, BULL, GameRuleError, MISS, type Dart, type MatchSetup, type Multiplier } from "../core/types";
+import { closedCount, fieldStatusFor, isShut, MICKEY_TARGETS, mickeyMouse, mickeyMouseV1, type MickeyState } from "./rules";
 
 const d = (field: number, multiplier: Multiplier = 1): Dart => ({ field, multiplier });
 const miss = d(MISS);
@@ -79,6 +79,31 @@ describe("lukking", () => {
     const s = play(setup(2), [d(20), d(20), d(20), ...turns([], [d(19), d(19), d(19)])]);
     expect(closedCount(s.teams[0])).toBe(2);
     expect(closedCount(s.teams[1])).toBe(0);
+  });
+});
+
+describe("felt", () => {
+  it("feltene er 20–15, Dobbel, Trippel og Bull", () => {
+    expect(MICKEY_TARGETS).toEqual([20, 19, 18, 17, 16, 15, ANY_DOUBLE, ANY_TRIPLE, BULL]);
+  });
+
+  it("Dobbel og Trippel lukkes med tre treff hver", () => {
+    const s = play(setup(2), [d(ANY_DOUBLE), d(ANY_DOUBLE), d(ANY_DOUBLE), ...turns([], [d(ANY_TRIPLE), d(ANY_TRIPLE)])]);
+    expect(fieldStatusFor(s, 0, ANY_DOUBLE)).toBe("lukket");
+    expect(s.teams[0].marks[ANY_TRIPLE]).toBe(2);
+  });
+
+  it("14–12 teller ikke lenger", () => {
+    expect(() => play(setup(2), [d(14)])).toThrow(GameRuleError);
+    expect(() => play(setup(2), [d(12)])).toThrow(GameRuleError);
+  });
+
+  it("eldre variant (gamle kamper) har fortsatt 20–12 og Bull", () => {
+    const s = replay(mickeyMouseV1, setup(2), [d(12), d(12), d(12)]);
+    expect(s.targets).toHaveLength(10);
+    expect(closedCount(s.teams[0])).toBe(1);
+    expect(() => replay(mickeyMouseV1, setup(2), [d(ANY_DOUBLE)])).toThrow(GameRuleError);
+    expect(mickeyMouseV1.hidden).toBe(true);
   });
 });
 
@@ -166,7 +191,7 @@ describe("vinnerbestemmelse", () => {
 
   it("2 lag: ni lukkede felt er ikke nok", () => {
     const s = play(setup(2), teamClosesAll(2, 0).slice(0, -1));
-    expect(closedCount(s.teams[0])).toBe(9);
+    expect(closedCount(s.teams[0])).toBe(MICKEY_TARGETS.length - 1);
     expect(s.finished).toBe(false);
   });
 
@@ -178,10 +203,11 @@ describe("vinnerbestemmelse", () => {
   it("3 lag: laget som lukker alt først vinner, selv om et annet lag er nær", () => {
     // Lag 1 og lag 3 lukker felt i samme takt, men lag 1 kaster først hver runde
     const darts = turns(...closeAllTurns.flatMap((t) => [t, [], t]));
-    // Stopp etter lag 1 sin tiende tur (9 hele runder à 9 piler + 3)
-    const s = play(setup(3), darts.slice(0, 9 * 9 + 3));
+    // Stopp etter lag 1 sin siste tur (n-1 hele runder à 9 piler + 3)
+    const n = MICKEY_TARGETS.length;
+    const s = play(setup(3), darts.slice(0, (n - 1) * 9 + 3));
     expect(s.winnerTeamIndex).toBe(0);
-    expect(closedCount(s.teams[2])).toBe(9);
+    expect(closedCount(s.teams[2])).toBe(n - 1);
   });
 
   it("3 lag: midterste lag kan vinne", () => {
@@ -215,5 +241,7 @@ describe("hjelpere", () => {
     expect(formatDart(d(19, 2))).toBe("D19");
     expect(formatDart(d(BULL))).toBe("Bull");
     expect(formatDart(miss)).toBe("Bom");
+    expect(formatDart(d(ANY_DOUBLE))).toBe("Dobbel");
+    expect(formatDart(d(ANY_TRIPLE))).toBe("Trippel");
   });
 });

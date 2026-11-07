@@ -2,10 +2,13 @@
 
 export type Multiplier = 1 | 2 | 3;
 
-/** Felt: 1–20 for tallfelt, 25 for bull, 0 for bom. */
+/** Felt: 1–20 for tallfelt, 25 for bull, 0 for bom, 102/103 for dobbel-/trippelringen. */
 export type Field = number;
 export const MISS: Field = 0;
 export const BULL: Field = 25;
+/** Spesialfelt: et treff hvor som helst i dobbelringen / trippelringen (f.eks. i Mickey Mouse). */
+export const ANY_DOUBLE: Field = 102;
+export const ANY_TRIPLE: Field = 103;
 
 export interface Dart {
   field: Field;
@@ -71,6 +74,8 @@ export interface Game<S extends BaseGameState = BaseGameState> {
   type: string;
   name: string;
   description: string;
+  /** Skjult spill kan ikke velges for nye kamper (eldre regelvarianter). */
+  hidden?: boolean;
   minTeams: number;
   maxTeams: number;
   dartsPerTurn: number;

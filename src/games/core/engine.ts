@@ -1,4 +1,16 @@
-import { GameRuleError, type BaseGameState, type Dart, type Game, type MatchSetup, type TurnPosition } from "./types";
+import {
+  ANY_DOUBLE,
+  ANY_TRIPLE,
+  BULL,
+  GameRuleError,
+  MISS,
+  type BaseGameState,
+  type Dart,
+  type Field,
+  type Game,
+  type MatchSetup,
+  type TurnPosition,
+} from "./types";
 
 /** Spilleren som kaster for laget i en gitt runde. Rekkefølgen roterer automatisk. */
 export function playerForRound(setup: MatchSetup, teamIndex: number, round: number): string {
@@ -80,10 +92,18 @@ export function roundsSummary(state: BaseGameState): TeamRound[][] {
   return rounds;
 }
 
+/** Visningsnavn for et felt. */
+export function fieldName(field: Field): string {
+  if (field === MISS) return "Bom";
+  if (field === BULL) return "Bull";
+  if (field === ANY_DOUBLE) return "Dobbel";
+  if (field === ANY_TRIPLE) return "Trippel";
+  return String(field);
+}
+
 export function formatDart(dart: Dart): string {
-  if (dart.field === 0) return "Bom";
+  if (dart.field === MISS || dart.field === ANY_DOUBLE || dart.field === ANY_TRIPLE) return fieldName(dart.field);
+  if (dart.field === BULL) return dart.multiplier === 2 ? "Bullseye" : "Bull";
   const prefix = dart.multiplier === 3 ? "T" : dart.multiplier === 2 ? "D" : "";
-  const name = dart.field === 25 ? "Bull" : String(dart.field);
-  if (dart.field === 25) return dart.multiplier === 2 ? "Bullseye" : "Bull";
-  return prefix + name;
+  return prefix + fieldName(dart.field);
 }

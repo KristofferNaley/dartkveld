@@ -147,7 +147,7 @@ export const dartThrow = pgTable(
     seq: integer("seq").notNull(),
     round: integer("round").notNull(),
     dartIndex: smallint("dart_index").notNull(),
-    // 1–20 for tallfelt, 25 for bull, 0 for bom
+    // 1–20 for tallfelt, 25 for bull, 0 for bom, 102/103 for dobbel-/trippelringen
     field: smallint("field").notNull(),
     // 1 = single, 2 = double, 3 = triple (bom lagres som 1)
     multiplier: smallint("multiplier").notNull(),
@@ -157,7 +157,7 @@ export const dartThrow = pgTable(
     unique("throw_match_seq_uq").on(t.matchId, t.seq),
     check("throw_dart_index", sql`${t.dartIndex} between 0 and 2`),
     check("throw_multiplier", sql`${t.multiplier} between 1 and 3`),
-    check("throw_field", sql`${t.field} between 0 and 20 or ${t.field} = 25`),
+    check("throw_field", sql`${t.field} between 0 and 20 or ${t.field} in (25, 102, 103)`),
   ],
 );
 
