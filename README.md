@@ -29,7 +29,31 @@ Appen svarer på <http://localhost:3014>, eller porten du setter i `APP_PORT`. M
 
 ### Bak reverse proxy
 
-Containeren lytter bare på `127.0.0.1:${APP_PORT}`. Pek proxyen (Caddy, nginx, Traefik eller Cloudflare Tunnel) dit, og sett `BETTER_AUTH_URL` og `APP_URL` til den offentlige https-adressen. Ellers avviser innloggingen forespørsler fra feil origin, og delingslenkene peker feil.
+Containeren lytter bare på `127.0.0.1:${APP_PORT}`. Pek proxyen (Caddy, nginx, Traefik eller Cloudflare Tunnel) dit, og sett `BETTER_AUTH_URL` og `APP_URL` til den offentlige https-adressen. Ellers avviser innloggingen forespørsler fra feil origin, og delingslenkene peker feil. Bak Cloudflare sender appen vanlig http videre til https.
+
+### Bruke en eksisterende Postgres-server
+
+Har serveren allerede Postgres, trenger du ikke `db`-containeren. Opprett en rolle og en database der:
+
+```bash
+docker exec -it postgres psql -U postgres -c "create role dart login password 'velg-et-passord'" -c "create database dart owner dart"
+```
+
+Lag så en `docker-compose.override.yml` (den leses automatisk og bør ikke i git). Den slår av `db`-tjenesten og kobler appen til nettverket der Postgres ligger:
+
+```yaml
+services:
+  app:
+    depends_on: !reset {}
+    networks: [default, backend]
+  db:
+    profiles: ["egen-db"]
+networks:
+  backend:
+    external: true
+```
+
+Sett `DATABASE_URL=postgres://dart:velg-et-passord@postgres:5432/dart` i `.env` og kjør `docker compose up -d`. Migrasjonene kjøres mot den nye databasen ved oppstart.
 
 ## Utvikling
 
@@ -43,13 +67,15 @@ Node trenger ikke være installert på verten. `scripts/npm.sh` kjører npm i en
 
 ## Backup av databasen
 
+Kommandoene under bruker `dart-db`, som er containeren fra `docker-compose.yml`. Bruker du en eksisterende Postgres-server, bytter du ut `dart-db` med navnet på den containeren (f.eks. `postgres`).
+
 Ta backup (komprimert SQL-dump):
 
 ```bash
-mkdir -p backup && docker exec dart-db pg_dump -U dart -d dart | gzip > backup/dart-$(date +%F).sql.gz
+mkdir -p backup && docker exec dart-db pg_dump -U dart -d dart --no-owner | gzip > backup/dart-$(date +%F).sql.gz
 ```
 
-Gjenopprett (overskriver innholdet i databasen):
+Gjenopprett (overskriver innholdet i databasen). På en delt server kjøres `drop`/`create` som `postgres`-brukeren:
 
 ```bash
 docker compose stop app
