@@ -5,3 +5,4 @@ dist
 *.tsbuildinfo
 next-env.d.ts
 backup/*.sql*
+docker-compose.override.yml
