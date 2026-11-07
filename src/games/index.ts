@@ -1,5 +1,5 @@
 import type { BaseGameState, Game } from "./core/types";
-import { mickeyMouse, mickeyMouseV1 } from "./mickey-mouse/rules";
+import { mickeyMouse } from "./mickey-mouse/rules";
 
 /**
  * Register over spill. Nye spill (501, 301, Around the Clock) legges til her
@@ -7,7 +7,6 @@ import { mickeyMouse, mickeyMouseV1 } from "./mickey-mouse/rules";
  */
 export const GAMES = {
   "mickey-mouse": mickeyMouse,
-  "mickey-mouse-10": mickeyMouseV1,
 } as const;
 
 export type GameType = keyof typeof GAMES;

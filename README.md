@@ -96,5 +96,5 @@ Reglene ligger i `src/games/mickey-mouse/rules.ts`, med tester ved siden av. End
 - Tre treff lukker et felt for laget. Treff på et felt laget allerede har lukket, teller ikke.
 - Et felt er stengt når alle lag har lukket det (vises på tavla).
 - Ingen poeng: laget som først lukker alle feltene, vinner med en gang. Pilene som er igjen i runden ignoreres.
-- Kamper spilt med den første regelversjonen (20–12 og Bull) har spilltypen `mickey-mouse-10`. Den er skjult for nye kamper, men gamle kamper beholder reglene sine. Gjør det samme hvis reglene endres igjen på en måte som ville endret gamle resultater.
+- Kampstate utledes fra kastene med reglene slik de er nå. Endres reglene slik at gamle kamper ville fått et annet resultat, bør den gamle varianten registreres som et eget spill med `hidden: true` og de gamle kampene få den spilltypen.
 - Angre etter at kampen er ferdig gjenåpner den. Delingslenken trekkes da tilbake, og en ny lenke lages når kampen avsluttes igjen.

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { formatDart, replay, roundsSummary, undoLast } from "../core/engine";
 import { ANY_DOUBLE, ANY_TRIPLE, BULL, GameRuleError, MISS, type Dart, type MatchSetup, type Multiplier } from "../core/types";
-import { closedCount, fieldStatusFor, isShut, MICKEY_TARGETS, mickeyMouse, mickeyMouseV1, type MickeyState } from "./rules";
+import { closedCount, fieldStatusFor, isShut, MICKEY_TARGETS, mickeyMouse, type MickeyState } from "./rules";
 
 const d = (field: number, multiplier: Multiplier = 1): Dart => ({ field, multiplier });
 const miss = d(MISS);
@@ -96,14 +96,6 @@ describe("felt", () => {
   it("14–12 teller ikke lenger", () => {
     expect(() => play(setup(2), [d(14)])).toThrow(GameRuleError);
     expect(() => play(setup(2), [d(12)])).toThrow(GameRuleError);
-  });
-
-  it("eldre variant (gamle kamper) har fortsatt 20–12 og Bull", () => {
-    const s = replay(mickeyMouseV1, setup(2), [d(12), d(12), d(12)]);
-    expect(s.targets).toHaveLength(10);
-    expect(closedCount(s.teams[0])).toBe(1);
-    expect(() => replay(mickeyMouseV1, setup(2), [d(ANY_DOUBLE)])).toThrow(GameRuleError);
-    expect(mickeyMouseV1.hidden).toBe(true);
   });
 });
 

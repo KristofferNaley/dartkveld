@@ -29,7 +29,6 @@ const mickeyUi: GameUi = {
 /** Visningskomponenter per spill. Nye spill registreres her ved siden av src/games/index.ts. */
 export const GAME_UI: Record<string, GameUi> = {
   "mickey-mouse": mickeyUi,
-  "mickey-mouse-10": mickeyUi,
 };
 
 
