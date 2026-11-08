@@ -5,14 +5,14 @@ import { roundsSummary, formatDart } from "@/games/core/engine";
 import { getGameUi } from "@/components/games/registry";
 import { Logo } from "@/components/Logo";
 import { teamColor } from "@/lib/colors";
-import { playerName } from "@/lib/match-types";
+import { playerName, teamPlayers } from "@/lib/match-types";
 import { getSharedResult } from "@/lib/result";
 
 export async function generateMetadata({ params }: PageProps<"/r/[token]">): Promise<Metadata> {
   const { token } = await params;
   const r = await getSharedResult(token);
   if (!r) return { title: "Resultat ikke funnet", robots: { index: false } };
-  const title = `${r.winner.name} vant ${r.game.name}`;
+  const title = `${r.winnerLabel} vant ${r.game.name}`;
   const description = `${r.summary} · ${r.date}`;
   return {
     title,
@@ -43,12 +43,13 @@ export default async function SharedResultPage({ params }: PageProps<"/r/[token]
       <section className="rounded-3xl border p-6 text-center" style={{ borderColor: teamColor(winnerIndex), background: `${teamColor(winnerIndex)}1a` }}>
         <div className="text-sm uppercase tracking-widest text-muted">{game.name} · vinner</div>
         <h1 className="mt-1 text-4xl font-black sm:text-5xl" style={{ color: teamColor(winnerIndex) }}>
-          🏆 {r.winner.name}
+          🏆 {r.winnerLabel}
         </h1>
-        {r.winner.players.length > 1 && <p className="mt-1 text-muted">{r.winner.players.map((p) => p.name).join(", ")}</p>}
+        <p className="mt-1 text-muted">{r.winner.name}</p>
         <div className="mt-5 flex flex-wrap justify-center gap-3">
           {ranked.map((s) => (
             <div key={s.index} className="min-w-28 rounded-2xl bg-bg/60 px-4 py-3">
+              <div className="text-xs text-muted">{s.team}</div>
               <div className="truncate text-sm font-semibold" style={{ color: teamColor(s.index) }}>{s.name}</div>
               <div className="tabular text-3xl font-black">{s.score}</div>
               <div className="text-xs text-muted">{r.scoreLabel}</div>
@@ -70,7 +71,10 @@ export default async function SharedResultPage({ params }: PageProps<"/r/[token]
               <tr className="border-b border-line text-left">
                 <th className="px-3 py-2 font-medium text-muted">#</th>
                 {match.teams.map((t, i) => (
-                  <th key={t.id} className="px-3 py-2 font-semibold" style={{ color: teamColor(i) }}>{t.name}</th>
+                  <th key={t.id} className="px-3 py-2 font-semibold" style={{ color: teamColor(i) }}>
+                    {t.name}
+                    <div className="text-xs font-normal text-muted">{teamPlayers(t)}</div>
+                  </th>
                 ))}
               </tr>
             </thead>

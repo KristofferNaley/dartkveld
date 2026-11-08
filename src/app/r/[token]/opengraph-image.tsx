@@ -46,7 +46,7 @@ export default async function OgImage({ params }: { params: Promise<{ token: str
         </div>
         <div style={{ display: "flex", fontSize: 30, marginTop: 52, color: "#8a99b3", letterSpacing: 4 }}>VINNER</div>
         <div style={{ display: "flex", fontSize: 96, fontWeight: 800, color, lineHeight: 1.05, marginTop: 4 }}>
-          {r.winner.name.length > 22 ? `${r.winner.name.slice(0, 21)}…` : r.winner.name}
+          {r.winnerLabel.length > 22 ? `${r.winnerLabel.slice(0, 21)}…` : r.winnerLabel}
         </div>
         <div style={{ display: "flex", marginTop: "auto", gap: 24 }}>
           {scores.map((s) => (

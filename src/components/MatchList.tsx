@@ -27,7 +27,7 @@ export function MatchList({ matches, empty }: { matches: Item[]; empty: string }
                     <span key={t.id} className="flex items-center gap-1.5">
                       {i > 0 && <span className="text-muted">mot</span>}
                       <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: teamColor(i) }} />
-                      <span className={t.id === m.winnerTeamId ? "font-bold" : ""}>{t.name}</span>
+                      <span className={t.id === m.winnerTeamId ? "font-bold" : ""}>{t.players.join(" & ")}</span>
                     </span>
                   ))}
                 </div>
@@ -37,7 +37,7 @@ export function MatchList({ matches, empty }: { matches: Item[]; empty: string }
               ) : iWon ? (
                 <span className="rounded-full bg-ok/15 px-2.5 py-1 text-xs font-semibold text-ok">Seier</span>
               ) : winner ? (
-                <span className="rounded-full bg-panel-2 px-2.5 py-1 text-xs text-muted">{winner.name} vant</span>
+                <span className="rounded-full bg-panel-2 px-2.5 py-1 text-xs text-muted">{winner.players.join(" & ")} vant</span>
               ) : null}
             </Link>
           </li>

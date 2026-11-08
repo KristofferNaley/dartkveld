@@ -7,21 +7,17 @@ import { createMatchAction } from "./actions";
 
 type User = { id: string; name: string };
 type Player = { key: string; kind: "user"; userId: string; name: string } | { key: string; kind: "guest"; name: string };
-type Team = { key: string; name: string; nameEdited: boolean; players: Player[] };
+type Team = { key: string; players: Player[] };
 
 let counter = 0;
 const key = () => `k${++counter}`;
 
-function autoName(team: Team, index: number) {
-  if (team.nameEdited) return team.name;
-  return team.players.length ? team.players.map((p) => p.name).join(" & ") : `Lag ${index + 1}`;
-}
 
 export function NewMatchForm({ users, me }: { users: User[]; me: User }) {
   const [gameType, setGameType] = useState<GameType>("mickey-mouse");
   const [teams, setTeams] = useState<Team[]>(() => [
-    { key: key(), name: me.name, nameEdited: false, players: [{ key: key(), kind: "user", userId: me.id, name: me.name }] },
-    { key: key(), name: "Lag 2", nameEdited: false, players: [] },
+    { key: key(), players: [{ key: key(), kind: "user", userId: me.id, name: me.name }] },
+    { key: key(), players: [] },
   ]);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -30,7 +26,7 @@ export function NewMatchForm({ users, me }: { users: User[]; me: User }) {
   const chosen = new Set(teams.flatMap((t) => t.players.flatMap((p) => (p.kind === "user" ? [p.userId] : []))));
 
   function update(index: number, fn: (t: Team) => Team) {
-    setTeams((ts) => ts.map((t, i) => (i === index ? { ...fn(t) } : t)).map((t, i) => ({ ...t, name: autoName(t, i) })));
+    setTeams((ts) => ts.map((t, i) => (i === index ? { ...fn(t) } : t)));
   }
 
   function submit() {
@@ -38,7 +34,6 @@ export function NewMatchForm({ users, me }: { users: User[]; me: User }) {
     const payload = {
       gameType,
       teams: teams.map((t) => ({
-        name: t.name.trim(),
         players: t.players.map((p) => (p.kind === "user" ? { kind: "user", userId: p.userId } : { kind: "guest", name: p.name })),
       })),
     };
@@ -77,7 +72,7 @@ export function NewMatchForm({ users, me }: { users: User[]; me: User }) {
             users={users.filter((u) => !chosen.has(u.id))}
             canRemove={teams.length > game.minTeams}
             onChange={(fn) => update(ti, fn)}
-            onRemove={() => setTeams((ts) => ts.filter((_, i) => i !== ti).map((t, i) => ({ ...t, name: autoName(t, i) })))}
+            onRemove={() => setTeams((ts) => ts.filter((_, i) => i !== ti))}
           />
         ))}
       </div>
@@ -86,14 +81,14 @@ export function NewMatchForm({ users, me }: { users: User[]; me: User }) {
         <Button
           variant="secondary"
           className="w-full"
-          onClick={() => setTeams((ts) => [...ts, { key: key(), name: `Lag ${ts.length + 1}`, nameEdited: false, players: [] }])}
+          onClick={() => setTeams((ts) => [...ts, { key: key(), players: [] }])}
         >
           + Legg til lag
         </Button>
       )}
 
       <ErrorText>{error}</ErrorText>
-      <Button size="lg" className="w-full" onClick={submit} disabled={pending || teams.some((t) => t.players.length === 0 || !t.name.trim())}>
+      <Button size="lg" className="w-full" onClick={submit} disabled={pending || teams.some((t) => t.players.length === 0)}>
         {pending ? "Starter ..." : "Start kamp"}
       </Button>
     </div>
@@ -122,13 +117,7 @@ function TeamEditor({
     <Card className="space-y-3" >
       <div className="flex items-center gap-2">
         <span className="h-4 w-4 shrink-0 rounded-full" style={{ background: teamColor(index) }} />
-        <input
-          aria-label="Lagnavn"
-          value={team.name}
-          maxLength={40}
-          onChange={(e) => onChange((t) => ({ ...t, name: e.target.value, nameEdited: true }))}
-          className={`${inputClass} h-11 font-semibold`}
-        />
+        <h3 className="flex-1 text-lg font-bold">Lag {index + 1}</h3>
         {canRemove && (
           <Button variant="ghost" size="sm" onClick={onRemove} aria-label="Fjern lag">
             Fjern

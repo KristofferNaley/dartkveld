@@ -1,7 +1,7 @@
 import { fieldName } from "@/games/core/engine";
 import { closedCount, fieldStatusFor, isShut, type MickeyState } from "@/games/mickey-mouse/rules";
 import { teamColor } from "@/lib/colors";
-import { playerName, type MatchDTO } from "@/lib/match-types";
+import type { MatchDTO } from "@/lib/match-types";
 import { Marks } from "../Marks";
 
 /** Bakgrunn for en rute: lukket = lagets farge, stengt = mørk. */
@@ -30,7 +30,14 @@ export function MickeyBoard({ match, state, highlightTurn = true }: { match: Mat
                   {t.name}
                   {state.winnerTeamIndex === i && " 🏆"}
                 </div>
-                {i === current && <div className="truncate text-xs text-muted">{playerName(match, state.turn.playerId)}</div>}
+                <div className="truncate text-xs text-muted">
+                  {t.players.map((p, pi) => (
+                    <span key={p.id} className={i === current && p.id === state.turn.playerId ? "font-bold text-white" : ""}>
+                      {pi > 0 && ", "}
+                      {p.name}
+                    </span>
+                  ))}
+                </div>
                 <div className="tabular text-2xl font-bold">
                   {closedCount(state.teams[i])}
                   <span className="text-sm font-medium text-muted">/{state.targets.length}</span>
@@ -97,6 +104,14 @@ export function MickeyTvBoard({ match, state }: { match: MatchDTO; state: Mickey
           <div className="max-w-full truncate text-[clamp(1rem,3.6vh,4rem)] font-bold leading-tight" style={{ color: teamColor(i) }}>
             {t.name}
             {state.winnerTeamIndex === i && " 🏆"}
+          </div>
+          <div className="max-w-full truncate text-[clamp(0.8rem,2.4vh,2.6rem)] leading-tight text-white/70">
+            {t.players.map((p, pi) => (
+              <span key={p.id} className={i === current && p.id === state.turn.playerId ? "font-bold text-white" : ""}>
+                {pi > 0 && ", "}
+                {p.name}
+              </span>
+            ))}
           </div>
           <div className="tabular text-[clamp(2rem,9vh,11rem)] font-black leading-none">
             {closedCount(state.teams[i])}

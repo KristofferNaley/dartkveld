@@ -27,7 +27,7 @@ export const newMatchSchema = z
   .object({
     gameType: z.enum(SELECTABLE_GAME_TYPES),
     teams: z
-      .array(z.object({ name, players: z.array(newPlayerSchema).min(1, "Hvert lag trenger minst én spiller").max(8) }))
+      .array(z.object({ players: z.array(newPlayerSchema).min(1, "Hvert lag trenger minst én spiller").max(8) }))
       .min(2, "Velg minst 2 lag")
       .max(8, "Maks 8 lag"),
   })

@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import type { BaseGameState } from "@/games/core/types";
 import { announcementSince, type Announcement } from "@/lib/announcements";
-import { playerName, type MatchDTO } from "@/lib/match-types";
+import { playerName, teamPlayers, type MatchDTO } from "@/lib/match-types";
 
 const SHOW_MS = 3800;
 
@@ -18,7 +18,7 @@ export function useAnnouncement(match: MatchDTO, state: BaseGameState, dartsPerT
     setPrevLen(state.log.length);
     if (state.log.length > prevLen) {
       const a = announcementSince(state, prevLen, dartsPerTurn, (ti, pid) => ({
-        lag: match.teams[ti].name,
+        lag: teamPlayers(match.teams[ti]),
         spiller: playerName(match, pid),
       }));
       if (a) setCurrent(a);

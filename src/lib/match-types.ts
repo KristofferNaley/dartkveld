@@ -38,3 +38,8 @@ export function playerName(m: Pick<MatchDTO, "teams">, playerId: string): string
   for (const t of m.teams) for (const p of t.players) if (p.id === playerId) return p.name;
   return "Ukjent";
 }
+
+/** Deltakerne på et lag som tekst, f.eks. «Ola & Kari». Brukes i setninger og lister. */
+export function teamPlayers(team: Pick<MatchTeamDTO, "players">): string {
+  return team.players.map((p) => p.name).join(" & ");
+}

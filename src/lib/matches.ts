@@ -22,6 +22,10 @@ export class MatchError extends Error {
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 type Executor = typeof db | Tx;
 
+export function teamNameFor(index: number): string {
+  return `Lag ${index + 1}`;
+}
+
 export function newShareToken(): string {
   return randomBytes(18).toString("base64url");
 }
@@ -162,7 +166,8 @@ export async function createMatch(ownerId: string, input: NewMatchInput): Promis
   return db.transaction(async (tx) => {
     const [m] = await tx.insert(match).values({ gameType: input.gameType, ownerId }).returning({ id: match.id });
     for (const [ti, t] of input.teams.entries()) {
-      const [tr] = await tx.insert(team).values({ matchId: m.id, name: t.name, position: ti }).returning({ id: team.id });
+      // Lagene heter alltid Lag 1, Lag 2 ... (deltakerne vises ved siden av)
+      const [tr] = await tx.insert(team).values({ matchId: m.id, name: teamNameFor(ti), position: ti }).returning({ id: team.id });
       await tx.insert(player).values(
         t.players.map((p, pi) => ({
           matchId: m.id,

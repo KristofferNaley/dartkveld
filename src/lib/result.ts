@@ -4,6 +4,7 @@ import { getGame } from "@/games";
 import { getGameUi } from "@/components/games/registry";
 import { formatDate } from "./format";
 import { getMatchByShareToken, matchState } from "./matches";
+import { teamPlayers } from "./match-types";
 
 /** Data for den offentlige resultatsiden og OG-bildet. */
 export const getSharedResult = cache(async (token: string) => {
@@ -14,8 +15,9 @@ export const getSharedResult = cache(async (token: string) => {
   const game = getGame(match.gameType);
   const ui = getGameUi(match.gameType);
   const winnerIndex = state.winnerTeamIndex ?? 0;
-  const scores = match.teams.map((t, i) => ({ name: t.name, score: ui.scoreText(state, i), index: i }));
+  // I setninger og på bildet brukes deltakerne («Ola & Kari»), ikke «Lag 1»
+  const scores = match.teams.map((t, i) => ({ name: teamPlayers(t), team: t.name, score: ui.scoreText(state, i), index: i }));
   const date = formatDate(match.finishedAt ?? match.createdAt);
   const summary = `${scores.map((s) => `${s.name} ${s.score}`).join(" – ")} ${ui.scoreLabel}`;
-  return { scoreLabel: ui.scoreLabel, match, state, game, winnerIndex, winner: match.teams[winnerIndex], scores, date, summary };
+  return { winnerLabel: teamPlayers(match.teams[winnerIndex]), scoreLabel: ui.scoreLabel, match, state, game, winnerIndex, winner: match.teams[winnerIndex], scores, date, summary };
 });

@@ -9,7 +9,7 @@ import { TurnBanner } from "@/components/TurnBanner";
 import { buttonClass, ErrorText } from "@/components/ui";
 import { useAnnouncement } from "@/hooks/useAnnouncement";
 import { useScoring } from "@/hooks/useScoring";
-import type { MatchDTO } from "@/lib/match-types";
+import { teamPlayers, type MatchDTO } from "@/lib/match-types";
 import { deleteMatchAction } from "./actions";
 
 export function MatchScreen({
@@ -29,7 +29,7 @@ export function MatchScreen({
   const ui = getGameUi(match.gameType);
   const { announcement, dismiss } = useAnnouncement(match, state, game.dartsPerTurn);
   const token = shareToken === undefined ? confirmed.shareToken : shareToken;
-  const winner = state.winnerTeamIndex !== null ? match.teams[state.winnerTeamIndex].name : null;
+  const winner = state.winnerTeamIndex !== null ? teamPlayers(match.teams[state.winnerTeamIndex]) : null;
 
   return (
     <div className="space-y-4">

@@ -1,7 +1,7 @@
 import { formatDart } from "@/games/core/engine";
 import type { BaseGameState, LoggedDart } from "@/games/core/types";
 import { teamColor } from "@/lib/colors";
-import { playerName, type MatchDTO } from "@/lib/match-types";
+import { playerName, teamPlayers, type MatchDTO } from "@/lib/match-types";
 
 export function currentTurnDarts(state: BaseGameState): LoggedDart[] {
   const { round, teamIndex } = state.turn;
@@ -24,7 +24,7 @@ export function TurnBanner({ match, state, size = "compact" }: { match: MatchDTO
     return (
       <div className={`rounded-2xl text-center ${tv ? "py-[1.5vh]" : "border border-line bg-panel p-4"}`} style={{ background: `${teamColor(w)}22` }}>
         <div className={tv ? "text-[clamp(1.5rem,7vh,8rem)] font-black" : "text-2xl font-black"} style={{ color: teamColor(w) }}>
-          🏆 {match.teams[w].name} vant!
+          🏆 {teamPlayers(match.teams[w])} vant!
         </div>
       </div>
     );
@@ -50,7 +50,7 @@ export function TurnBanner({ match, state, size = "compact" }: { match: MatchDTO
         </div>
         {!tv && previous.length > 0 && (
           <div className="mt-0.5 truncate text-xs text-muted">
-            Forrige: {match.teams[previous[0].teamIndex].name} {previous.map((d) => formatDart(d)).join(", ")}
+            Forrige: {playerName(match, previous[0].playerId)} {previous.map((d) => formatDart(d)).join(", ")}
           </div>
         )}
       </div>
