@@ -9,17 +9,20 @@ export async function Header() {
       <div className="mx-auto flex h-14 max-w-5xl items-center gap-3 px-4">
         <Link href="/" className="flex items-center gap-2 text-lg font-bold">
           <Logo />
-          Dartkveld
+          <span className="hidden sm:inline">Dartkveld</span>
         </Link>
         {user && (
-          <nav className="ml-auto flex items-center gap-1 text-sm">
-            <Link href="/kamp/ny" className="rounded-lg px-3 py-2 font-semibold text-accent hover:bg-panel-2">
+          <nav className="ml-auto flex items-center gap-0.5 text-sm sm:gap-1">
+            <Link href="/kamp/ny" className="rounded-lg px-2.5 py-2 font-semibold text-accent hover:bg-panel-2 sm:px-3">
               Ny kamp
             </Link>
-            <Link href="/historikk" className="rounded-lg px-3 py-2 text-muted hover:bg-panel-2 hover:text-white">
+            <Link href="/statistikk" className="rounded-lg px-2.5 py-2 text-muted hover:bg-panel-2 hover:text-white sm:px-3">
+              Statistikk
+            </Link>
+            <Link href="/historikk" className="rounded-lg px-2.5 py-2 text-muted hover:bg-panel-2 hover:text-white sm:px-3">
               Historikk
             </Link>
-            <Link href="/profil" className="max-w-28 truncate rounded-lg px-3 py-2 text-muted hover:bg-panel-2 hover:text-white">
+            <Link href="/profil" className="max-w-20 truncate rounded-lg px-2.5 py-2 text-muted hover:bg-panel-2 hover:text-white sm:max-w-28 sm:px-3">
               {user.name}
             </Link>
           </nav>

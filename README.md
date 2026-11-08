@@ -118,6 +118,15 @@ src/
 2. Registrer spillet i `src/games/index.ts`.
 3. Lag tavlekomponenter og registrer dem i `src/components/games/registry.tsx`.
 
+## Statistikk
+
+`/statistikk` viser egen statistikk, `/statistikk/gjengen` viser en tabell for alle, og `/statistikk/spiller/[id]` viser en annen spiller. Alt regnes ut fra `throw`-tabellen ved hver visning, i rene funksjoner i `src/lib/stats/compute.ts` (med tester). Databasen har ingen egne statistikktabeller.
+
+- **Treff** er piler som traff et felt som teller i spillet. Appen lagrer hva pila telte på, ikke nøyaktig hvor den landet.
+- **Treff per runde** er treff delt på antall piler, ganget med 3 (det vanlige målet i cricket-dart, «marks per round»).
+- Bare registrerte brukere er med. Gjester telles ikke. Seier på lag teller for alle på laget, mens kast bare teller for den som kastet.
+- Kast etter midnatt hører til kvelden før («Kveldens beste»).
+
 ## Mickey Mouse-regler (slik de er implementert)
 
 Reglene ligger i `src/games/mickey-mouse/rules.ts`, med tester ved siden av. Endrer du reglene der, følger resten av appen etter.

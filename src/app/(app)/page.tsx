@@ -43,7 +43,10 @@ export default async function HomePage() {
       )}
 
       <section>
-        <h2 className="mb-3 text-lg font-semibold">Din statistikk</h2>
+        <div className="mb-3 flex items-baseline justify-between">
+          <h2 className="text-lg font-semibold">Din statistikk</h2>
+          <Link href="/statistikk" className="text-sm text-accent">Mer statistikk</Link>
+        </div>
         <StatCards {...stats} />
       </section>
 
