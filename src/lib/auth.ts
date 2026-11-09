@@ -3,12 +3,16 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
+import { admin } from "better-auth/plugins";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
+import { isAdminEmail, parseAdminEmails } from "./admin-shared";
 import { findInvite, joinByInvite } from "./groups";
 import { appUrl as baseUrl } from "./url";
 
 const appUrl = baseUrl();
+
+export const adminEmails = () => parseAdminEmails(process.env.ADMIN_EMAILS);
 
 /** Finnes det noen brukere ennå? */
 export async function hasUsers(): Promise<boolean> {
@@ -52,5 +56,13 @@ export const auth = betterAuth({
       if (userId && code) await joinByInvite(userId, code).catch(() => undefined);
     }),
   },
-  plugins: [nextCookies()],
+  databaseHooks: {
+    user: {
+      create: {
+        // Den som er i ADMIN_EMAILS blir admin med en gang kontoen lages
+        before: async (u) => ({ data: { ...u, role: isAdminEmail(u.email, adminEmails()) ? "admin" : "user" } }),
+      },
+    },
+  },
+  plugins: [admin({ defaultRole: "user", adminRoles: ["admin"] }), nextCookies()],
 });
