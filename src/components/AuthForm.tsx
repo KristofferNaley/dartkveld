@@ -12,6 +12,7 @@ const messages: Record<string, string> = {
   PASSWORD_TOO_SHORT: "Passordet må ha minst 8 tegn",
   INVALID_EMAIL: "Ugyldig e-postadresse",
   EMAIL_PASSWORD_SIGN_UP_DISABLED: "Registrering er skrudd av. Spør den som drifter appen.",
+  BANNED_USER: "Kontoen din er sperret. Ta kontakt med admin.",
   INVITE_REQUIRED: "Du trenger en gyldig invitasjonslenke for å lage konto",
 };
 

@@ -32,6 +32,11 @@ export async function Header() {
               </svg>
               Profil
             </Link>
+            {user.role === "admin" && (
+              <Link href="/admin" className="rounded-lg px-2.5 py-2 text-muted hover:bg-panel-2 hover:text-white sm:px-3">
+                Admin
+              </Link>
+            )}
             <Link href="/hjelp" aria-label="Hjelp" title="Hjelp" className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted hover:bg-panel-2 hover:text-white">
               ?
             </Link>
