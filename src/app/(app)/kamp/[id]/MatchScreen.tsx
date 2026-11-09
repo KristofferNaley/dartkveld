@@ -36,8 +36,12 @@ export function MatchScreen({
       <AnnouncementToast announcement={announcement} onDismiss={dismiss} />
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <h1 className="truncate text-xl font-bold">{game.name}</h1>
-          <p className="text-xs text-muted">{syncing ? "Lagrer ..." : "Alle kast er lagret"}</p>
+          <h1 className="truncate text-xl font-bold">
+            <span className="tabular text-muted">#{match.number}</span> {game.name}
+          </h1>
+          <p className="text-xs text-muted">
+            Opprettet av {match.ownerName} · {syncing ? "Lagrer ..." : "Alle kast er lagret"}
+          </p>
         </div>
         <Link href={`/kamp/${match.id}/vis`} className={buttonClass({ variant: "secondary", size: "sm" })}>
           📺 Visningsmodus

@@ -45,6 +45,9 @@ export function TvScreen({ initial }: { initial: MatchDTO }) {
       </div>
       {ui.TvLegend && <ui.TvLegend />}
       <AnnouncementToast announcement={announcement} size="tv" onDismiss={dismiss} />
+      <div className="pointer-events-none absolute bottom-[1.5vh] right-[1.5vh] text-[1.6vh] text-white/50">
+        Kamp #{match.number} · opprettet av {match.ownerName}
+      </div>
 
       <div
         className={`absolute right-[1.5vh] top-[1.5vh] flex gap-2 transition-opacity ${chrome ? "opacity-100" : "pointer-events-none opacity-0"}`}

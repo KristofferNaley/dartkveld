@@ -22,6 +22,13 @@
       "when": 1794062754728,
       "tag": "0002_dobbel_trippel",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794242309348,
+      "tag": "0003_kampnummer",
+      "breakpoints": true
     }
   ]
 }

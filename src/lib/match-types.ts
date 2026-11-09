@@ -15,9 +15,13 @@ export interface MatchTeamDTO {
 
 export interface MatchDTO {
   id: string;
+  /** Kort kampnummer (#42) */
+  number: number;
   gameType: string;
   status: "active" | "finished";
   ownerId: string;
+  /** Navnet til den som opprettet kampen */
+  ownerName: string;
   shareToken: string | null;
   createdAt: string;
   finishedAt: string | null;

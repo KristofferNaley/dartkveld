@@ -41,7 +41,7 @@ export default async function OgImage({ params }: { params: Promise<{ token: str
           <div style={{ display: "flex", width: 40, height: 40, borderRadius: 40, border: "4px solid #f5b301", alignItems: "center", justifyContent: "center", marginRight: 16 }}>
             <div style={{ width: 14, height: 14, borderRadius: 14, background: "#f43f5e" }} />
           </div>
-          <span>Dartkveld · {r.game.name}</span>
+          <span>Dartkveld · {r.game.name} · Kamp #{r.match.number}</span>
           <span style={{ marginLeft: "auto" }}>{r.date}</span>
         </div>
         <div style={{ display: "flex", fontSize: 30, marginTop: 52, color: "#8a99b3", letterSpacing: 4 }}>VINNER</div>

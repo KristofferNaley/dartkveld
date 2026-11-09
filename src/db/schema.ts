@@ -83,6 +83,8 @@ export const match = pgTable(
   "match",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    // Kort, lesbart kampnummer (#42). Deles ut av en identitetskolonne.
+    number: integer("number").notNull().unique().generatedByDefaultAsIdentity(),
     gameType: text("game_type").notNull(),
     status: text("status", { enum: ["active", "finished"] }).notNull().default("active"),
     ownerId: text("owner_id")

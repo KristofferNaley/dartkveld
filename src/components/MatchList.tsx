@@ -18,9 +18,12 @@ export function MatchList({ matches, empty }: { matches: Item[]; empty: string }
             <Link href={`/kamp/${m.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-panel-2">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap gap-x-2 text-sm text-muted">
+                  <span className="tabular font-semibold text-white">#{m.number}</span>
                   <span>{getGame(m.gameType).name}</span>
                   <span>·</span>
                   <span>{formatDateTime(m.createdAt)}</span>
+                  <span>·</span>
+                  <span>opprettet av {m.ownerName}</span>
                 </div>
                 <div className="mt-0.5 flex flex-wrap items-center gap-x-2 font-medium">
                   {m.teams.map((t, i) => (

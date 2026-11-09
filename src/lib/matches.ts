@@ -34,6 +34,7 @@ async function fetchMatch(ex: Executor, where: ReturnType<typeof eq>): Promise<M
   const row = await ex.query.match.findFirst({
     where,
     with: {
+      owner: { columns: { name: true } },
       teams: {
         orderBy: [asc(team.position)],
         with: { players: { orderBy: [asc(player.position)], with: { user: { columns: { name: true } } } } },
@@ -45,9 +46,11 @@ async function fetchMatch(ex: Executor, where: ReturnType<typeof eq>): Promise<M
   const last = row.throws.at(-1);
   return {
     id: row.id,
+    number: row.number,
     gameType: row.gameType,
     status: row.status,
     ownerId: row.ownerId,
+    ownerName: row.owner.name,
     shareToken: row.shareToken,
     createdAt: row.createdAt.toISOString(),
     finishedAt: row.finishedAt?.toISOString() ?? null,
@@ -210,6 +213,7 @@ export async function listMatchesForUser(userId: string, limit = 50) {
     orderBy: [desc(match.createdAt)],
     limit,
     with: {
+      owner: { columns: { name: true } },
       teams: {
         orderBy: [asc(team.position)],
         with: { players: { orderBy: [asc(player.position)], with: { user: { columns: { name: true } } } } },
@@ -218,6 +222,8 @@ export async function listMatchesForUser(userId: string, limit = 50) {
   });
   return rows.map((r) => ({
     id: r.id,
+    number: r.number,
+    ownerName: r.owner.name,
     gameType: r.gameType,
     status: r.status,
     createdAt: r.createdAt,

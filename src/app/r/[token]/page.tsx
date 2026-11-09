@@ -37,7 +37,7 @@ export default async function SharedResultPage({ params }: PageProps<"/r/[token]
       <header className="flex items-center gap-2 text-muted">
         <Logo className="h-6 w-6" />
         <span className="font-semibold text-white">Dartkveld</span>
-        <span className="ml-auto text-sm">{date}</span>
+        <span className="ml-auto text-sm">Kamp #{match.number} · {date}</span>
       </header>
 
       <section className="rounded-3xl border p-6 text-center" style={{ borderColor: teamColor(winnerIndex), background: `${teamColor(winnerIndex)}1a` }}>
@@ -46,6 +46,7 @@ export default async function SharedResultPage({ params }: PageProps<"/r/[token]
           🏆 {r.winnerLabel}
         </h1>
         <p className="mt-1 text-muted">{r.winner.name}</p>
+        <p className="mt-1 text-xs text-muted">Kamp #{match.number} · opprettet av {match.ownerName}</p>
         <div className="mt-5 flex flex-wrap justify-center gap-3">
           {ranked.map((s) => (
             <div key={s.index} className="min-w-28 rounded-2xl bg-bg/60 px-4 py-3">
