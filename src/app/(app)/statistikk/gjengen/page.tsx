@@ -4,6 +4,7 @@ import { fmtMpr, fmtPct, StatsTabs } from "@/components/stats/StatsViews";
 import { BULL } from "@/games/core/types";
 import { mickeyMouse } from "@/games/mickey-mouse/rules";
 import { formatDate } from "@/lib/format";
+import { requireGroup } from "@/lib/groups";
 import { requireUser } from "@/lib/session";
 import { gangTable, latestEvening, titles, type GangRow } from "@/lib/stats/compute";
 import { loadStatsData } from "@/lib/stats/queries";
@@ -25,14 +26,15 @@ export default async function GangPage({ searchParams }: PageProps<"/statistikk/
   const me = await requireUser("/statistikk/gjengen");
   const sp = await searchParams;
   const sort: SortKey = typeof sp.sort === "string" && sp.sort in SORTS ? (sp.sort as SortKey) : "mpr";
-  const data = await loadStatsData(mickeyMouse.type);
+  const group = await requireGroup(me.id);
+  const data = await loadStatsData(mickeyMouse.type, group.id);
   const rows = [...gangTable(data.users, data.darts, data.matches)].sort((a, b) => SORTS[sort].value(b) - SORTS[sort].value(a));
   const evening = latestEvening(data.users, data.darts);
   const awards = titles(data.users, data.darts, data.matches, BULL);
 
   return (
     <div>
-      <PageTitle sub={`${mickeyMouse.name} · bare innloggede spillere`}>Statistikk</PageTitle>
+      <PageTitle sub={`${group.name} · ${mickeyMouse.name} · bare innloggede spillere`}>Statistikk</PageTitle>
       <StatsTabs active="gjengen" />
 
       {rows.length === 0 ? (

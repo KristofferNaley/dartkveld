@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { getGame } from "@/games";
+import { isMember } from "@/lib/groups";
 import { canScore, getMatch } from "@/lib/matches";
 import { requireUser } from "@/lib/session";
 import { appUrl } from "@/lib/url";
@@ -13,7 +14,7 @@ export default async function MatchPage({ params }: PageProps<"/kamp/[id]">) {
   const user = await requireUser(`/kamp/${id}`);
   if (!z.uuid().safeParse(id).success) notFound();
   const match = await getMatch(id);
-  if (!match) notFound();
+  if (!match || !(await isMember(match.groupId, user.id))) notFound();
   getGame(match.gameType);
   return (
     <MatchScreen

@@ -2,9 +2,9 @@ import Link from "next/link";
 import { getGame } from "@/games";
 import { teamColor } from "@/lib/colors";
 import { formatDateTime } from "@/lib/format";
-import type { listMatchesForUser } from "@/lib/matches";
+import type { listMatchesForGroup } from "@/lib/matches";
 
-type Item = Awaited<ReturnType<typeof listMatchesForUser>>[number];
+type Item = Awaited<ReturnType<typeof listMatchesForGroup>>[number];
 
 export function MatchList({ matches, empty }: { matches: Item[]; empty: string }) {
   if (matches.length === 0) return <p className="text-muted">{empty}</p>;

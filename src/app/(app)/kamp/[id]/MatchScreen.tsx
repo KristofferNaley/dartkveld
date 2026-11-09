@@ -48,6 +48,11 @@ export function MatchScreen({
         </Link>
       </div>
 
+      <p className="rounded-xl bg-panel px-3 py-2 text-sm text-muted">
+        📺 Vis på en TV uten innlogging: åpne <span className="font-semibold text-white">{appUrl.replace(/^https?:\/\//, "")}/tv</span> og skriv kampkoden{" "}
+        <span className="tabular rounded-md bg-bg px-2 py-0.5 text-base font-black tracking-widest text-accent">{match.code}</span>
+      </p>
+
       <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
         <div className="space-y-4 lg:order-2">
           <TurnBanner match={match} state={state} />

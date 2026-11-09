@@ -4,6 +4,7 @@ import { fmtMpr, fmtPct } from "@/components/stats/StatsViews";
 import { fieldName } from "@/games/core/engine";
 import { mickeyMouse } from "@/games/mickey-mouse/rules";
 import { formatDate } from "@/lib/format";
+import { requireGroup } from "@/lib/groups";
 import { requireUser } from "@/lib/session";
 import { playerStats } from "@/lib/stats/compute";
 import { loadStatsData } from "@/lib/stats/queries";
@@ -13,7 +14,8 @@ export const metadata = { title: "Profil" };
 
 export default async function ProfilePage() {
   const user = await requireUser("/profil");
-  const data = await loadStatsData(mickeyMouse.type);
+  const group = await requireGroup(user.id);
+  const data = await loadStatsData(mickeyMouse.type, group.id);
   const s = playerStats(user.id, data.darts, data.matches, mickeyMouse.targets);
   const initials = user.name
     .split(/\s+/)
@@ -49,7 +51,7 @@ export default async function ProfilePage() {
       <Card>
         <div className="mb-3 flex items-baseline justify-between">
           <h2 className="font-semibold">Kort oppsummert</h2>
-          <span className="text-xs text-muted">{mickeyMouse.name}</span>
+          <span className="text-xs text-muted">{group.name} · {mickeyMouse.name}</span>
         </div>
         <dl className="grid grid-cols-3 gap-3">
           {facts.map((f) => (

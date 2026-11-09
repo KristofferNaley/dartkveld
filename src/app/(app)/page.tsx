@@ -2,7 +2,8 @@ import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { MatchList, StatCards } from "@/components/MatchList";
 import { LinkButton } from "@/components/ui";
-import { listMatchesForUser, statsForUser } from "@/lib/matches";
+import { getActiveGroup } from "@/lib/groups";
+import { listMatchesForGroup, statsForUser } from "@/lib/matches";
 import { getUser } from "@/lib/session";
 
 export default async function HomePage() {
@@ -21,7 +22,17 @@ export default async function HomePage() {
     );
   }
 
-  const [matches, stats] = await Promise.all([listMatchesForUser(user.id, 10), statsForUser(user.id)]);
+  const group = await getActiveGroup(user.id);
+  if (!group) {
+    return (
+      <div className="mx-auto max-w-md space-y-4 py-10 text-center">
+        <h1 className="text-2xl font-bold">Hei, {user.name}</h1>
+        <p className="text-muted">Du er ikke med i noen gruppe ennå. Lag en, eller åpne en invitasjonslenke du har fått.</p>
+        <LinkButton href="/grupper" size="lg" className="w-full">Lag en gruppe</LinkButton>
+      </div>
+    );
+  }
+  const [matches, stats] = await Promise.all([listMatchesForGroup(group.id, user.id, 10), statsForUser(user.id, group.id)]);
   const active = matches.filter((m) => m.status === "active");
   const finished = matches.filter((m) => m.status === "finished").slice(0, 5);
 
@@ -30,7 +41,7 @@ export default async function HomePage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold sm:text-3xl">Hei, {user.name}</h1>
-          <p className="text-muted">Klar for en runde?</p>
+          <p className="text-muted">Klar for en runde i {group.name}?</p>
         </div>
         <LinkButton href="/kamp/ny" size="lg">Ny kamp</LinkButton>
       </div>
@@ -52,7 +63,7 @@ export default async function HomePage() {
 
       <section>
         <div className="mb-3 flex items-baseline justify-between">
-          <h2 className="text-lg font-semibold">Siste kamper</h2>
+          <h2 className="text-lg font-semibold">Siste kamper i {group.name}</h2>
           <Link href="/historikk" className="text-sm text-accent">Se alle</Link>
         </div>
         <MatchList matches={finished} empty="Ingen ferdige kamper ennå." />
