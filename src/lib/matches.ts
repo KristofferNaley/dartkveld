@@ -39,7 +39,7 @@ async function fetchMatch(ex: Executor, where: ReturnType<typeof eq>): Promise<M
         orderBy: [asc(team.position)],
         with: { players: { orderBy: [asc(player.position)], with: { user: { columns: { name: true } } } } },
       },
-      throws: { orderBy: [asc(dartThrow.seq)], columns: { id: true, field: true, multiplier: true } },
+      throws: { orderBy: [asc(dartThrow.seq)], columns: { id: true, field: true, multiplier: true, ring: true } },
     },
   });
   if (!row) return null;
@@ -59,7 +59,11 @@ async function fetchMatch(ex: Executor, where: ReturnType<typeof eq>): Promise<M
       name: t.name,
       players: t.players.map((p) => ({ id: p.id, userId: p.userId, name: p.user?.name ?? p.guestName ?? p.nameSnapshot })),
     })),
-    throws: row.throws.map((t) => ({ field: t.field, multiplier: t.multiplier as Dart["multiplier"] })),
+    throws: row.throws.map((t) => ({
+      field: t.field,
+      multiplier: t.multiplier as Dart["multiplier"],
+      ...(t.ring ? { ring: true } : {}),
+    })),
     version: `${row.throws.length}.${last?.id ?? 0}.${row.status}.${row.shareToken ? 1 : 0}`,
   };
 }
@@ -127,6 +131,7 @@ export async function registerDarts(matchId: string, userId: string, expectedSeq
         dartIndex: turn.dartIndex,
         field: dart.field,
         multiplier: dart.multiplier,
+        ring: dart.ring === true,
       });
     }
     if (rows.length) await tx.insert(dartThrow).values(rows);

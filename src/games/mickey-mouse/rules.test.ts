@@ -63,14 +63,7 @@ describe("lukking", () => {
     expect(s.log.at(-1)?.marks).toBe(0);
   });
 
-  it("alle treff teller 1: double og triple avvises", () => {
-    expect(() => play(setup(2), [d(20, 2)])).toThrow(GameRuleError);
-    expect(() => play(setup(2), [d(20, 3)])).toThrow(GameRuleError);
-    expect(() => play(setup(2), [d(BULL, 2)])).toThrow(GameRuleError);
-  });
-
-  it("felt utenfor spillet og bom med multiplikator avvises", () => {
-    expect(() => play(setup(2), [d(11)])).toThrow(GameRuleError);
+  it("bom med multiplikator avvises", () => {
     expect(() => play(setup(2), [d(MISS, 2)])).toThrow(GameRuleError);
   });
 
@@ -93,7 +86,7 @@ describe("felt", () => {
     expect(s.teams[0].marks[ANY_TRIPLE]).toBe(2);
   });
 
-  it("14–12 teller ikke lenger", () => {
+  it("single på 14–12 teller ikke", () => {
     expect(() => play(setup(2), [d(14)])).toThrow(GameRuleError);
     expect(() => play(setup(2), [d(12)])).toThrow(GameRuleError);
   });
@@ -235,5 +228,100 @@ describe("hjelpere", () => {
     expect(formatDart(miss)).toBe("Bom");
     expect(formatDart(d(ANY_DOUBLE))).toBe("Dobbel");
     expect(formatDart(d(ANY_TRIPLE))).toBe("Trippel");
+  });
+});
+
+describe("tallverdi: dobbel og trippel", () => {
+  it("T20 teller 3 treff på 20 og lukker feltet i ett kast", () => {
+    const s = play(setup(2), [d(20, 3)]);
+    expect(s.teams[0].marks[20]).toBe(3);
+    expect(s.teams[0].marks[ANY_TRIPLE]).toBe(0);
+    expect(s.log[0].marks).toBe(3);
+    expect(fieldStatusFor(s, 0, 20)).toBe("lukket");
+    expect(s.turn).toMatchObject({ dartIndex: 1 }); // to piler igjen
+  });
+
+  it("T20 med ring-valg teller 1 treff på Trippel og ingenting på 20", () => {
+    const s = play(setup(2), [{ field: 20, multiplier: 3, ring: true }]);
+    expect(s.teams[0].marks[20]).toBe(0);
+    expect(s.teams[0].marks[ANY_TRIPLE]).toBe(1);
+    expect(s.log[0].marks).toBe(1);
+  });
+
+  it("D19 teller 2 treff på 19, eller 1 på Dobbel med ring-valg", () => {
+    expect(play(setup(2), [d(19, 2)]).teams[0].marks[19]).toBe(2);
+    const ring = play(setup(2), [{ field: 19, multiplier: 2, ring: true }]);
+    expect(ring.teams[0].marks[19]).toBe(0);
+    expect(ring.teams[0].marks[ANY_DOUBLE]).toBe(1);
+  });
+
+  it("T7 og D3 teller bare på Trippel/Dobbel (ett treff), uten ring-valg", () => {
+    const s = play(setup(2), [d(7, 3), d(3, 2)]);
+    expect(s.teams[0].marks[ANY_TRIPLE]).toBe(1);
+    expect(s.teams[0].marks[ANY_DOUBLE]).toBe(1);
+    expect(s.log.map((l) => l.marks)).toEqual([1, 1]);
+  });
+
+  it("treff utover 3 forsvinner", () => {
+    const s = play(setup(2), [d(20), d(20, 3)]);
+    expect(s.teams[0].marks[20]).toBe(3);
+    expect(s.log[1].marks).toBe(2);
+    // et lukket felt gir ingenting
+    expect(play(setup(2), [d(20, 3), d(20, 3)]).log[1].marks).toBe(0);
+  });
+
+  it("Bull gir 1 treff, Bullseye 2 treff, og Bullseye er ikke en Dobbel", () => {
+    const s = play(setup(2), [d(BULL), d(BULL, 2)]);
+    expect(s.teams[0].marks[BULL]).toBe(3);
+    expect(s.teams[0].marks[ANY_DOUBLE]).toBe(0);
+    expect(s.log.map((l) => l.marks)).toEqual([1, 2]);
+    expect(() => play(setup(2), [d(BULL, 3)])).toThrow(GameRuleError);
+  });
+
+  it("single på 1–14 er bom og avvises, det samme er ukjente felt og ring-valg på single", () => {
+    expect(() => play(setup(2), [d(14)])).toThrow(GameRuleError);
+    expect(() => play(setup(2), [d(1)])).toThrow(GameRuleError);
+    expect(() => play(setup(2), [d(21)])).toThrow(GameRuleError);
+    expect(() => play(setup(2), [{ field: 20, multiplier: 1, ring: true }])).toThrow(GameRuleError);
+    expect(() => play(setup(2), [{ field: 0, multiplier: 1, ring: true }])).toThrow(GameRuleError);
+  });
+
+  it("gamle kast med feltkode 102/103 virker som før", () => {
+    const s = play(setup(2), [d(ANY_DOUBLE), d(ANY_TRIPLE), d(ANY_TRIPLE)]);
+    expect(s.teams[0].marks[ANY_DOUBLE]).toBe(1);
+    expect(s.teams[0].marks[ANY_TRIPLE]).toBe(2);
+    expect(() => play(setup(2), [d(ANY_DOUBLE, 2)])).toThrow(GameRuleError);
+  });
+
+  it("Linns eksempel: T20 lukker 20, og trippel-ringen får ett treff med neste pil på Trippel", () => {
+    const s = play(setup(2), [d(20, 3), { field: 5, multiplier: 3 }, miss]);
+    expect(fieldStatusFor(s, 0, 20)).toBe("lukket");
+    expect(s.teams[0].marks[ANY_TRIPLE]).toBe(1);
+  });
+
+  it("vinnerkastet kan være en trippel", () => {
+    const rest = MICKEY_TARGETS.filter((f) => f !== 20);
+    const darts = [...turns(...rest.map((f) => [d(f), d(f), d(f)]).flatMap((t) => [t, []])), d(20, 3)];
+    const s = play(setup(2), darts);
+    expect(s.finished).toBe(true);
+    expect(s.winnerTeamIndex).toBe(0);
+  });
+
+  it("angre av en trippel gjenåpner feltet", () => {
+    const s = undoLast(mickeyMouse, setup(2), [d(20, 3)]);
+    expect(s.teams[0].marks[20]).toBe(0);
+  });
+
+  it("formaterer kast med ring og Bullseye", () => {
+    expect(formatDart({ field: 20, multiplier: 3, ring: true })).toBe("T20 → Trippel");
+    expect(formatDart({ field: 19, multiplier: 2, ring: true })).toBe("D19 → Dobbel");
+    expect(formatDart(d(BULL, 2))).toBe("Bullseye");
+    expect(formatDart(d(7, 3))).toBe("T7");
+  });
+
+  it("runde-for-runde teller merker, og ring-valget følger med", () => {
+    const rounds = roundsSummary(play(setup(2), [d(20, 3), { field: 19, multiplier: 2, ring: true }, miss]));
+    expect(rounds[0][0].marks).toBe(4);
+    expect(rounds[0][0].darts[1]).toEqual({ field: 19, multiplier: 2, ring: true });
   });
 });

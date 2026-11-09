@@ -1,0 +1,1 @@
+ALTER TABLE "throw" ADD COLUMN "ring" boolean DEFAULT false NOT NULL;

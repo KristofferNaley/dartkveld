@@ -11,8 +11,15 @@ export const ANY_DOUBLE: Field = 102;
 export const ANY_TRIPLE: Field = 103;
 
 export interface Dart {
+  /** Feltet pila faktisk traff: 1–20, 25 (bull), 0 (bom). Eldre kast kan ha 102/103 (dobbel-/trippelringen uten tall). */
   field: Field;
+  /** Ringen pila traff: 1 = single, 2 = dobbel (Bullseye på 25), 3 = trippel. */
   multiplier: Multiplier;
+  /**
+   * Bare for dobbel/trippel på 15–20: pila telte på Dobbel-/Trippel-feltet i stedet for tallet.
+   * Mangler den, teller pila på tallet.
+   */
+  ring?: boolean;
 }
 
 export interface PlayerSetup {

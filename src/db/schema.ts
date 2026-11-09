@@ -149,10 +149,12 @@ export const dartThrow = pgTable(
     seq: integer("seq").notNull(),
     round: integer("round").notNull(),
     dartIndex: smallint("dart_index").notNull(),
-    // 1–20 for tallfelt, 25 for bull, 0 for bom, 102/103 for dobbel-/trippelringen
+    // Faktisk tall pila traff: 1–20, 25 for bull, 0 for bom. Eldre kast har 102/103 for dobbel-/trippelringen uten tall.
     field: smallint("field").notNull(),
-    // 1 = single, 2 = double, 3 = triple (bom lagres som 1)
+    // 1 = single, 2 = double (Bullseye på bull), 3 = triple (bom lagres som 1)
     multiplier: smallint("multiplier").notNull(),
+    // Dobbel/trippel på 15–20 som telte på Dobbel-/Trippel-feltet i stedet for tallet
+    ring: boolean("ring").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [

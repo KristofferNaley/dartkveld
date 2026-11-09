@@ -5,6 +5,8 @@ export const dartSchema = z.object({
   // 0–20, 25 (bull), 102/103 (dobbel-/trippelringen). Spillet validerer hvilke felt som teller.
   field: z.number().int().refine((f) => (f >= 0 && f <= 20) || f === 25 || f === 102 || f === 103, "Ugyldig felt"),
   multiplier: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+  // Dobbel/trippel som telte på Dobbel-/Trippel-feltet i stedet for tallet
+  ring: z.boolean().optional(),
 });
 
 export const registerDartsSchema = z.object({
