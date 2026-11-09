@@ -8,11 +8,13 @@ import { TurnBanner } from "@/components/TurnBanner";
 import { AnnouncementToast } from "@/components/AnnouncementToast";
 import { useAnnouncement } from "@/hooks/useAnnouncement";
 import { useLiveMatch } from "@/hooks/useLiveMatch";
+import { codeFeed, defaultFeed } from "@/lib/live/feed";
 import { useWakeLock } from "@/hooks/useWakeLock";
 import { setupFromMatch, type MatchDTO } from "@/lib/match-types";
 
-export function TvScreen({ initial }: { initial: MatchDTO }) {
-  const [match] = useLiveMatch(initial);
+export function TvScreen({ initial, readOnly = false }: { initial: MatchDTO; readOnly?: boolean }) {
+  const feed = useMemo(() => (readOnly ? codeFeed(initial.code) : defaultFeed), [readOnly, initial.code]);
+  const [match] = useLiveMatch(initial, feed);
   const wake = useWakeLock();
   const game = getGame(match.gameType);
   const ui = getGameUi(match.gameType);
@@ -46,7 +48,7 @@ export function TvScreen({ initial }: { initial: MatchDTO }) {
       {ui.TvLegend && <ui.TvLegend />}
       <AnnouncementToast announcement={announcement} size="tv" onDismiss={dismiss} />
       <div className="pointer-events-none absolute bottom-[1.5vh] right-[1.5vh] text-[1.6vh] text-white/50">
-        Kamp #{match.number} · opprettet av {match.ownerName}
+        Kamp #{match.number} · kode {match.code} · opprettet av {match.ownerName}
       </div>
 
       <div
@@ -60,9 +62,11 @@ export function TvScreen({ initial }: { initial: MatchDTO }) {
         >
           Fullskjerm
         </button>
-        <Link href={`/kamp/${match.id}`} className="rounded-lg bg-white/15 px-3 py-2 text-sm font-semibold hover:bg-white/25">
-          Til poengføring
-        </Link>
+        {!readOnly && (
+          <Link href={`/kamp/${match.id}`} className="rounded-lg bg-white/15 px-3 py-2 text-sm font-semibold hover:bg-white/25">
+            Til poengføring
+          </Link>
+        )}
       </div>
     </div>
   );

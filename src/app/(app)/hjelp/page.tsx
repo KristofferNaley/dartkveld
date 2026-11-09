@@ -62,6 +62,18 @@ export default function HelpPage() {
           </p>
           <p>Bare deltakerne og den som opprettet kampen kan føre poeng. Alle andre kan se på.</p>
         </Q>
+        <Q q="Hvordan fungerer grupper og invitasjoner?">
+          <p>
+            Kamper, spillere og statistikk hører til en <strong>gruppe</strong>, for eksempel vennegjengen eller jobben. Du kan være med i flere grupper og
+            bytter mellom dem øverst på siden. Historikk, ny kamp og Gjengen gjelder alltid den aktive gruppa.
+          </p>
+          <p>
+            Alle kan lage en gruppe og blir admin i den. Under <strong>Grupper</strong> finner du en <strong>invitasjonslenke</strong> du kan sende
+            til vennene dine. Man kan bare lage konto med en invitasjonslenke. Admin kan lage ny lenke (den gamle slutter å virke), fjerne medlemmer
+            og gjøre andre til admin.
+          </p>
+          <p>Egen statistikk kan vises for den aktive gruppa eller for alle gruppene dine.</p>
+        </Q>
         <Q q="Hva betyr kampnummeret?">
           <p>
             Hver kamp har et nummer, for eksempel <strong>#42</strong>. Du ser det i historikken, på kampsiden, i
@@ -72,6 +84,11 @@ export default function HelpPage() {
           <p>
             Åpne kampen og trykk <strong>Visningsmodus</strong>. Der er tavla stor og lett å lese på avstand, den viser hvem
             som kaster nå, og skjermen holdes våken. Den oppdateres hvert andre sekund.
+          </p>
+          <p>
+            TV-en trenger ikke konto. Åpne <strong>/tv</strong> i nettleseren på TV-en (eller på en PC koblet til TV-en) og skriv inn
+            <strong> kampkoden</strong> på fem tegn, som står øverst på kampsiden. Da vises tavla uten innlogging. Koden gir bare visning: du
+            kan ikke føre poeng med den.
           </p>
           <p>
             På iPhone kan du speile skjermen til en Apple TV med <strong>AirPlay</strong>, eller koble telefonen til TV-en med
