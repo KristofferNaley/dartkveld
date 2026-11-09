@@ -21,21 +21,21 @@ export function UserActions({ id, name, banned, isSelf }: { id: string; name: st
   }
 
   return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap gap-1.5">
+    <div className="space-y-1.5 sm:max-w-xs sm:text-right">
+      <div className="flex flex-wrap gap-1 sm:justify-end">
         <Button
-          size="sm" variant="secondary" disabled={pending}
+          size="sm" className="!h-8 !px-2.5 !text-xs" variant="secondary" disabled={pending}
           onClick={() => window.confirm(`Sette et nytt midlertidig passord for ${name}? Hen blir logget ut overalt.`) && run(() => tempPasswordAction(id), "Nytt passord er satt. Gi det til brukeren:")}
         >
           Nytt passord
         </Button>
         {!isSelf && (
-          <Button size="sm" variant="ghost" disabled={pending} onClick={() => run(() => banAction(id, !banned), banned ? "Sperren er opphevet" : "Sperret")}>
+          <Button size="sm" className="!h-8 !px-2.5 !text-xs" variant="ghost" disabled={pending} onClick={() => run(() => banAction(id, !banned), banned ? "Sperren er opphevet" : "Sperret")}>
             {banned ? "Opphev sperre" : "Sperr"}
           </Button>
         )}
         {!isSelf && (
-          <Button size="sm" variant="danger" disabled={pending} onClick={remove}>
+          <Button size="sm" className="!h-8 !px-2.5 !text-xs" variant="danger" disabled={pending} onClick={remove}>
             Slett
           </Button>
         )}

@@ -15,20 +15,19 @@ export default async function AdminUsersPage() {
       <PageTitle sub={`${users.length} brukere`}>Brukere</PageTitle>
       <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-panel">
         {users.map((u) => (
-          <li key={u.id} className="space-y-3 p-4">
-            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <span className="text-lg font-semibold">{u.name}</span>
-              {u.role === "admin" && <span className="rounded-full bg-accent/15 px-2 py-0.5 text-xs font-semibold text-accent">admin</span>}
-              {u.banned && <span className="rounded-full bg-danger/15 px-2 py-0.5 text-xs font-semibold text-danger">sperret</span>}
-              {u.id === me.id && <span className="text-sm text-muted">(deg)</span>}
-              <span className="text-sm text-muted">{u.email}</span>
+          <li key={u.id} className="flex flex-col gap-1.5 px-3 py-2.5 sm:flex-row sm:items-center sm:gap-4">
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                <span className="font-semibold">{u.name}</span>
+                {u.role === "admin" && <span className="rounded-full bg-accent/15 px-1.5 text-xs font-semibold text-accent">admin</span>}
+                {u.banned && <span className="rounded-full bg-danger/15 px-1.5 text-xs font-semibold text-danger">sperret</span>}
+                {u.id === me.id && <span className="text-xs text-muted">(deg)</span>}
+                <span className="truncate text-sm text-muted">{u.email}</span>
+              </div>
+              <div className="text-xs text-muted">
+                Registrert {formatDate(u.createdAt)} · sist aktiv {u.lastActive ? formatDate(u.lastActive) : "–"} · {u.matches} kamper · {u.groups} grupper
+              </div>
             </div>
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-4">
-              <div><dt className="text-muted">Registrert</dt><dd>{formatDate(u.createdAt)}</dd></div>
-              <div><dt className="text-muted">Sist aktiv</dt><dd>{u.lastActive ? formatDate(u.lastActive) : "–"}</dd></div>
-              <div><dt className="text-muted">Kamper</dt><dd className="tabular">{u.matches}</dd></div>
-              <div><dt className="text-muted">Grupper</dt><dd className="tabular">{u.groups}</dd></div>
-            </dl>
             <UserActions id={u.id} name={u.name} banned={u.banned} isSelf={u.id === me.id} />
           </li>
         ))}
