@@ -26,7 +26,7 @@ export default async function ProfilePage() {
     { label: "Kamper", value: String(s.matches) },
     { label: "Seire", value: String(s.wins) },
     { label: "Seiersandel", value: s.matches ? fmtPct(s.winRate) : "–" },
-    { label: "Treff per runde", value: s.darts ? fmtMpr(s.mpr) : "–" },
+    { label: "Merker per runde", value: s.darts ? fmtMpr(s.mpr) : "–" },
     { label: "Piler kastet", value: String(s.darts) },
     { label: "Favorittfelt", value: s.favoriteField !== null ? fieldName(s.favoriteField) : "–" },
   ];

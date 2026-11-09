@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ANY_DOUBLE, BULL, MISS } from "@/games/core/types";
+import { ANY_DOUBLE, ANY_TRIPLE, BULL, MISS } from "@/games/core/types";
 import { MICKEY_TARGETS } from "@/games/mickey-mouse/rules";
 import {
   eveningKey,
@@ -159,5 +159,41 @@ describe("gjengen", () => {
     expect(byKey.bom).toBe("kari"); // Kari og Per har 1 hver; første i listen vinner ved likhet
     expect(byKey.vinner).toBeUndefined(); // ingen har 3 kamper
     expect(byKey.stabil).toBeUndefined();
+  });
+});
+
+describe("merker og tallverdi", () => {
+  const dart = (field: number, multiplier: 1 | 2 | 3, ring = false, dartIndex = 0): StatDart => ({
+    matchId: "m1", userId: "ola", round: 0, dartIndex, field, multiplier, ring, createdAt: at(0),
+  });
+
+  it("merker per runde teller trippel som 3, dobbel som 2 og Bullseye som 2", () => {
+    const s = playerStats("ola", [dart(20, 3), dart(19, 2, false, 1), dart(BULL, 2, false, 2)], matches, MICKEY_TARGETS);
+    expect(s.marks).toBe(7);
+    expect(s.hits).toBe(3);
+    expect(s.mpr).toBeCloseTo(7);
+  });
+
+  it("ring-valg gir 1 merke, og T7 gir 1 merke", () => {
+    const s = playerStats("ola", [dart(20, 3, true), dart(7, 3, false, 1), dart(14, 1, false, 2)], matches, MICKEY_TARGETS);
+    expect(s.marks).toBe(2);
+    expect(s.hits).toBe(2); // singlen på 14 er bom
+  });
+
+  it("favorittfelt telles på faktisk tall, uansett ring", () => {
+    const s = playerStats("ola", [dart(20, 3, true), dart(20, 2, false, 1), dart(19, 1, false, 2)], matches, MICKEY_TARGETS);
+    expect(s.fields.find((f) => f.field === 20)?.hits).toBe(2);
+    expect(s.fields.find((f) => f.field === ANY_TRIPLE)?.hits).toBe(1);
+    expect(s.fields.find((f) => f.field === ANY_DOUBLE)?.hits).toBe(1);
+    expect(s.favoriteField).toBe(20);
+  });
+
+  it("beste runde rangeres etter merker", () => {
+    const s = playerStats("ola", [dart(20, 3), dart(20, 3, false, 1), dart(MISS, 1, false, 2), ...turn("m2", "ola", 0, [20, 20, 20], 60)], matches, MICKEY_TARGETS);
+    expect(s.bestTurn).toMatchObject({ matchId: "m1", marks: 6 });
+  });
+
+  it("eldre kast uten ring og multiplikator teller som før", () => {
+    expect(playerStats("ola", turn("m1", "ola", 0, [20, ANY_DOUBLE, 0]), matches, MICKEY_TARGETS)).toMatchObject({ marks: 2, hits: 2 });
   });
 });

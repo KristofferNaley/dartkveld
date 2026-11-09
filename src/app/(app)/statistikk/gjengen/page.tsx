@@ -11,7 +11,7 @@ import { loadStatsData } from "@/lib/stats/queries";
 export const metadata = { title: "Gjengen" };
 
 const SORTS = {
-  mpr: { label: "Treff/runde", value: (r: GangRow) => r.mpr },
+  mpr: { label: "Merker/runde", value: (r: GangRow) => r.mpr },
   treff: { label: "Treff %", value: (r: GangRow) => r.hitRate },
   kamper: { label: "Kamper", value: (r: GangRow) => r.matches },
   seire: { label: "Seire", value: (r: GangRow) => r.wins },
@@ -115,7 +115,7 @@ export default async function GangPage({ searchParams }: PageProps<"/statistikk/
             </table>
           </section>
           <p className="text-xs text-muted">
-            Treff per runde = snitt treff per tre piler. Treff er piler som traff et felt som teller i spillet. Gjester er ikke med.
+            Merker per runde = snitt merker per tre piler (en trippel gir 3, en dobbel 2, Bullseye 2). Treff % er piler som ga minst ett merke. Gjester er ikke med.
           </p>
         </div>
       )}

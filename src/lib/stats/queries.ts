@@ -19,6 +19,8 @@ export const loadStatsData = cache(async (gameType: string) => {
         round: dartThrow.round,
         dartIndex: dartThrow.dartIndex,
         field: dartThrow.field,
+        multiplier: dartThrow.multiplier,
+        ring: dartThrow.ring,
         createdAt: dartThrow.createdAt,
       })
       .from(dartThrow)

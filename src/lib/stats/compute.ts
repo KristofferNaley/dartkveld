@@ -2,13 +2,17 @@
  * Statistikk regnet ut fra lagrede kast. Rene funksjoner uten database, så de kan testes.
  *
  * Definisjoner:
- * - Treff: pila traff et felt som teller i spillet (alt unntatt «Bom»). Vi lagrer hva pila
- *   telte på, ikke nøyaktig hvor den landet, så et treff på 14 i Mickey Mouse er en bom.
- * - Treff per runde: treff / piler × 3 (vanlig mål i cricket-dart, «marks per round»).
+ * - Treff: pila ga minst ett merke (alt unntatt «Bom», og unntatt en single på 1–14).
+ * - Merker: antall treff pila ville gitt på et åpent felt: single 1, dobbel 2, trippel 3,
+ *   Bull 1, Bullseye 2. En dobbel/trippel som telte på Dobbel-/Trippel-feltet gir 1 merke.
+ *   Merker regnes uten å ta hensyn til om feltet allerede var lukket.
+ * - Merker per runde: merker / piler × 3 (vanlig mål i cricket-dart, «marks per round»).
+ * - Favorittfelt: telles på tallet pila faktisk traff, uansett ring.
  * - Runde: én spillers tur med opptil tre piler i en kamp.
  * - Bare registrerte brukere har statistikk. Gjester telles ikke.
  */
-import { MISS, type Field } from "@/games/core/types";
+import { ANY_DOUBLE, ANY_TRIPLE, BULL, type Field, type Multiplier } from "@/games/core/types";
+import { rawMarks } from "@/games/mickey-mouse/rules";
 
 export interface StatDart {
   matchId: string;
@@ -16,6 +20,10 @@ export interface StatDart {
   round: number;
   dartIndex: number;
   field: Field;
+  /** Ringen pila traff. Mangler på eldre kast (regnes som single). */
+  multiplier?: Multiplier;
+  /** Dobbel/trippel som telte på Dobbel-/Trippel-feltet i stedet for tallet */
+  ring?: boolean;
   createdAt: Date;
 }
 
@@ -38,7 +46,10 @@ export interface TurnSummary {
   userId: string;
   round: number;
   darts: number;
+  /** Piler som ga minst ett merke */
   hits: number;
+  /** Merker totalt */
+  marks: number;
   createdAt: Date;
 }
 
@@ -47,6 +58,7 @@ export interface FormPoint {
   date: Date;
   darts: number;
   hits: number;
+  marks: number;
   mpr: number;
   won: boolean | null; // null = kampen pågår
 }
@@ -55,6 +67,7 @@ export interface PlayerStats {
   userId: string;
   darts: number;
   hits: number;
+  marks: number;
   hitRate: number;
   mpr: number;
   matches: number;
@@ -71,7 +84,20 @@ export interface PlayerStats {
   form: FormPoint[];
 }
 
-const isHit = (d: StatDart) => d.field !== MISS;
+const dartOf = (d: StatDart) => ({ field: d.field, multiplier: d.multiplier ?? 1, ...(d.ring ? { ring: true } : {}) });
+const marksOf = (d: StatDart) => rawMarks(dartOf(d));
+const isHit = (d: StatDart) => marksOf(d) > 0;
+const sumMarks = (ds: StatDart[]) => ds.reduce((n, d) => n + marksOf(d), 0);
+
+/** Traff pila feltet? Tall og Bull telles på tallet pila traff, Dobbel/Trippel på ringen. */
+export function landedOn(d: StatDart, field: Field): boolean {
+  const m = d.multiplier ?? 1;
+  if (field === ANY_DOUBLE) return d.field === ANY_DOUBLE || (m === 2 && d.field >= 1 && d.field <= 20);
+  if (field === ANY_TRIPLE) return d.field === ANY_TRIPLE || (m === 3 && d.field >= 1 && d.field <= 20);
+  if (field === BULL) return d.field === BULL;
+  return d.field === field && isHit(d);
+}
+
 const ratio = (a: number, b: number) => (b > 0 ? a / b : 0);
 
 /** Grupper kast i runder (én spillers tur i én kamp). */
@@ -81,11 +107,12 @@ export function turnsOf(darts: StatDart[]): TurnSummary[] {
     const key = `${d.matchId}|${d.userId}|${d.round}`;
     let t = map.get(key);
     if (!t) {
-      t = { matchId: d.matchId, userId: d.userId, round: d.round, darts: 0, hits: 0, createdAt: d.createdAt };
+      t = { matchId: d.matchId, userId: d.userId, round: d.round, darts: 0, hits: 0, marks: 0, createdAt: d.createdAt };
       map.set(key, t);
     }
     t.darts++;
     if (isHit(d)) t.hits++;
+    t.marks += marksOf(d);
     if (d.createdAt < t.createdAt) t.createdAt = d.createdAt;
   }
   return [...map.values()];
@@ -114,8 +141,9 @@ export function playerStats(
 ): PlayerStats {
   const darts = allDarts.filter((d) => d.userId === userId);
   const hits = darts.filter(isHit).length;
+  const marks = sumMarks(darts);
 
-  const fields = targets.map((field) => ({ field, hits: darts.filter((d) => d.field === field).length }));
+  const fields = targets.map((field) => ({ field, hits: darts.filter((d) => landedOn(d, field)).length }));
   const withHits = fields.filter((f) => f.hits > 0);
   const favoriteField = withHits.length ? withHits.reduce((a, b) => (b.hits > a.hits ? b : a)).field : null;
   const weakestField = withHits.length ? fields.reduce((a, b) => (b.hits < a.hits ? b : a)).field : null;
@@ -123,7 +151,7 @@ export function playerStats(
   const turns = turnsOf(darts);
   const full = turns.filter((t) => t.darts === 3);
   const bestTurn = turns.length
-    ? turns.reduce((a, b) => (b.hits > a.hits || (b.hits === a.hits && b.createdAt < a.createdAt) ? b : a))
+    ? turns.reduce((a, b) => (b.marks > a.marks || (b.marks === a.marks && b.createdAt < a.createdAt) ? b : a))
     : null;
 
   const byDartIndex = [0, 1, 2].map((index) => {
@@ -133,11 +161,12 @@ export function playerStats(
   });
 
   const matchById = new Map(matches.map((m) => [m.id, m]));
-  const perMatch = new Map<string, { darts: number; hits: number }>();
+  const perMatch = new Map<string, { darts: number; hits: number; marks: number }>();
   for (const d of darts) {
-    const s = perMatch.get(d.matchId) ?? { darts: 0, hits: 0 };
+    const s = perMatch.get(d.matchId) ?? { darts: 0, hits: 0, marks: 0 };
     s.darts++;
     if (isHit(d)) s.hits++;
+    s.marks += marksOf(d);
     perMatch.set(d.matchId, s);
   }
   const form: FormPoint[] = [...perMatch.entries()]
@@ -149,7 +178,8 @@ export function playerStats(
         date: m?.createdAt ?? new Date(0),
         darts: s.darts,
         hits: s.hits,
-        mpr: ratio(s.hits, s.darts) * 3,
+        marks: s.marks,
+        mpr: ratio(s.marks, s.darts) * 3,
         won: m?.finished ? m.winnerTeamId === me?.teamId : null,
       };
     })
@@ -160,8 +190,9 @@ export function playerStats(
     userId,
     darts: darts.length,
     hits,
+    marks,
     hitRate: ratio(hits, darts.length),
-    mpr: ratio(hits, darts.length) * 3,
+    mpr: ratio(marks, darts.length) * 3,
     ...matchRecord(userId, matches),
     fields,
     favoriteField,
@@ -179,6 +210,7 @@ export interface GangRow {
   user: StatUser;
   darts: number;
   hits: number;
+  marks: number;
   hitRate: number;
   mpr: number;
   matches: number;
@@ -186,18 +218,20 @@ export interface GangRow {
   winRate: number;
 }
 
-/** Tabell over alle brukere som har kastet eller spilt, sortert på treff per runde. */
+/** Tabell over alle brukere som har kastet eller spilt, sortert på merker per runde. */
 export function gangTable(users: StatUser[], darts: StatDart[], matches: StatMatch[]): GangRow[] {
   return users
     .map((user) => {
       const mine = darts.filter((d) => d.userId === user.id);
       const hits = mine.filter(isHit).length;
+      const marks = sumMarks(mine);
       return {
         user,
         darts: mine.length,
         hits,
+        marks,
         hitRate: ratio(hits, mine.length),
-        mpr: ratio(hits, mine.length) * 3,
+        mpr: ratio(marks, mine.length) * 3,
         ...matchRecord(user.id, matches),
       };
     })
@@ -243,7 +277,7 @@ export function eveningKey(d: Date): string {
 
 export interface EveningBest {
   evening: string;
-  rows: { user: StatUser; darts: number; hits: number; mpr: number }[];
+  rows: { user: StatUser; darts: number; marks: number; mpr: number }[];
 }
 
 /** Siste spillekveld og hvem som hadde best treff per runde da (minst 9 piler). */
@@ -254,8 +288,8 @@ export function latestEvening(users: StatUser[], darts: StatDart[], minDarts = 9
   const rows = users
     .map((user) => {
       const mine = tonight.filter((d) => d.userId === user.id);
-      const hits = mine.filter(isHit).length;
-      return { user, darts: mine.length, hits, mpr: ratio(hits, mine.length) * 3 };
+      const marks = sumMarks(mine);
+      return { user, darts: mine.length, marks, mpr: ratio(marks, mine.length) * 3 };
     })
     .filter((r) => r.darts >= minDarts)
     .sort((a, b) => b.mpr - a.mpr);
@@ -281,19 +315,19 @@ export function titles(users: StatUser[], darts: StatDart[], matches: StatMatch[
   const stats = users.map((user) => {
     const mine = darts.filter((d) => d.userId === user.id);
     const full = turnsOf(mine).filter((t) => t.darts === 3);
-    const perMatch = new Map<string, { darts: number; hits: number }>();
+    const perMatch = new Map<string, { darts: number; marks: number }>();
     for (const d of mine) {
-      const s = perMatch.get(d.matchId) ?? { darts: 0, hits: 0 };
+      const s = perMatch.get(d.matchId) ?? { darts: 0, marks: 0 };
       s.darts++;
-      if (isHit(d)) s.hits++;
+      s.marks += marksOf(d);
       perMatch.set(d.matchId, s);
     }
-    const mprs = [...perMatch.values()].filter((s) => s.darts >= 9).map((s) => (s.hits / s.darts) * 3);
+    const mprs = [...perMatch.values()].filter((s) => s.darts >= 9).map((s) => (s.marks / s.darts) * 3);
     return {
       user,
       perfect: full.filter((t) => t.hits === 3).length,
       blank: full.filter((t) => t.hits === 0).length,
-      bull: mine.filter((d) => d.field === bullField).length,
+      bull: mine.filter((d) => landedOn(d, bullField)).length,
       stability: mprs.length >= 3 ? std(mprs) : null,
       ...matchRecord(user.id, matches),
     };
@@ -348,7 +382,7 @@ export function titles(users: StatUser[], darts: StatDart[], matches: StatMatch[
       title: "Mr. Stabil",
       description: "Jevnest form fra kamp til kamp (minst 3 kamper)",
       user: stable.pick.user,
-      value: `±${stable.score.toFixed(2)} treff per runde`,
+      value: `±${stable.score.toFixed(2)} merker per runde`,
     });
 
   const blank = best(stats, (s) => (s.blank > 0 ? s.blank : null));

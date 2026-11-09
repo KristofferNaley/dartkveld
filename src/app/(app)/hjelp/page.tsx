@@ -24,7 +24,7 @@ export default function HelpPage() {
         <Q q="Hvordan spilles Mickey Mouse?">
           <p>
             Feltene er <strong>20, 19, 18, 17, 16, 15, Dobbel, Trippel og Bull</strong>, og de kan lukkes i valgfri rekkefølge.
-            Hvert treff teller som ett merke, og <strong>tre merker lukker et felt</strong>.
+            <strong> Tre treff lukker et felt.</strong>
           </p>
           <p>
             Treff på et felt som laget ditt allerede har lukket, teller ikke. Et felt er stengt for alle når alle lagene har
@@ -32,9 +32,28 @@ export default function HelpPage() {
           </p>
           <p>Hver spiller kaster tre piler per runde, og rekkefølgen innen laget roterer automatisk.</p>
         </Q>
+        <Q q="Hva teller dobbel, trippel og Bull?">
+          <p>
+            Du fører pila slik den landet: velg <strong>Single</strong>, <strong>Double</strong> eller <strong>Triple</strong>, og trykk så tallet.
+            Valget går tilbake til Single etter hvert kast.
+          </p>
+          <p>
+            <strong>Dobbel 19</strong> gir 2 treff på 19, og <strong>Trippel 20</strong> gir 3 treff på 20. Treff utover tre forsvinner.
+            Etter en dobbel eller trippel på 15–20 velger du om pila skal telle på <strong>tallet</strong> (2 eller 3 treff)
+            eller på <strong>Dobbel/Trippel</strong>-feltet (1 treff).
+          </p>
+          <p>
+            Dobbel og trippel på tallene 1–14 teller bare på Dobbel/Trippel. Trykk <strong>Annet tall</strong> etter at du har valgt
+            Double eller Triple. En vanlig single på 1–14 er bom.
+          </p>
+          <p>
+            <strong>Bull</strong> (grønn, ytre ring) gir 1 treff, og <strong>Bullseye</strong> (rød, midten) gir 2 treff på Bull.
+            Bullseye teller ikke som Dobbel.
+          </p>
+        </Q>
         <Q q="Hvordan fører jeg poeng?">
           <p>
-            Trykk på feltet pila traff. Bom registrerer du med <strong>Bom</strong>, og <strong>Bom resten</strong> avslutter
+            Trykk på tallet pila traff. Bom registrerer du med <strong>Bom</strong>, og <strong>Bom resten</strong> avslutter
             runden når resten av pilene bommet.
           </p>
           <p>
@@ -79,11 +98,12 @@ export default function HelpPage() {
         </Q>
         <Q q="Hva betyr tallene i statistikken?">
           <p>
-            <strong>Treff per runde</strong> er gjennomsnittlig antall treff som teller (altså som lukker feltene) for hver
-            runde på tre piler. <strong>Seiersandel</strong> er andelen ferdige kamper laget ditt har vunnet.
+            <strong>Merker per runde</strong> er snittet av treff per tre piler, der en dobbel gir 2, en trippel 3 og Bullseye 2.
+            <strong> Treffprosent</strong> er andelen piler som ga minst ett treff. <strong>Seiersandel</strong> er andelen
+            ferdige kamper laget ditt har vunnet.
           </p>
           <p>
-            <strong>Favorittfelt</strong> er feltet du treffer oftest. <strong>Gjengen</strong> viser tabell, innbyrdes
+            <strong>Favorittfelt</strong> er feltet du treffer oftest, regnet på tallet pila faktisk traff. <strong>Gjengen</strong> viser tabell, innbyrdes
             oppgjør, «Kveldens beste» og titler for alle som har spilt.
           </p>
         </Q>

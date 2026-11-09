@@ -62,7 +62,7 @@ export function PlayerStatsView({ stats, h2h }: { stats: PlayerStats; h2h: HeadT
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
-        <Tile label="Treff per runde" value={fmtMpr(stats.mpr)} hint="Snitt treff per tre piler" />
+        <Tile label="Merker per runde" value={fmtMpr(stats.mpr)} hint="Snitt merker per tre piler" />
         <Tile label="Treffprosent" value={fmtPct(stats.hitRate)} hint={`${stats.hits} av ${stats.darts} piler`} />
         <Tile label="Seiersandel" value={stats.matches ? fmtPct(stats.winRate) : "–"} hint={`${stats.wins} seire av ${stats.matches} kamper`} />
       </div>
@@ -101,7 +101,7 @@ export function PlayerStatsView({ stats, h2h }: { stats: PlayerStats; h2h: HeadT
                 <dd className="text-lg font-bold">
                   {stats.bestTurn ? (
                     <Link href={`/kamp/${stats.bestTurn.matchId}`} className="hover:text-accent">
-                      {"🎯".repeat(stats.bestTurn.hits) || "0 treff"}
+                      {"🎯".repeat(Math.min(stats.bestTurn.marks, 12)) || "0 treff"}
                     </Link>
                   ) : (
                     "–"
@@ -139,7 +139,7 @@ export function PlayerStatsView({ stats, h2h }: { stats: PlayerStats; h2h: HeadT
         </div>
       </div>
 
-      <Section title="Form" sub={`Treff per runde i de ${stats.form.length} siste kampene`}>
+      <Section title="Form" sub={`Merker per runde i de ${stats.form.length} siste kampene`}>
         <FormChart points={stats.form} />
       </Section>
 
@@ -172,21 +172,22 @@ export function PlayerStatsView({ stats, h2h }: { stats: PlayerStats; h2h: HeadT
   );
 }
 
-/** Enkel linjegraf over treff per runde (skala 0–3), med prikker for seier/tap/pågår. */
+/** Enkel linjegraf over merker per runde (skala 0–3, større ved høyt snitt), med prikker for seier/tap/pågår. */
 function FormChart({ points }: { points: FormPoint[] }) {
   if (points.length === 0) return <p className="text-sm text-muted">Ingen kamper ennå.</p>;
   const W = 600;
   const H = 180;
   const pad = { l: 40, r: 14, t: 14, b: 14 };
   const x = (i: number) => (points.length === 1 ? (pad.l + W - pad.r) / 2 : pad.l + (i / (points.length - 1)) * (W - pad.l - pad.r));
-  const y = (v: number) => pad.t + (1 - Math.min(v, 3) / 3) * (H - pad.t - pad.b);
+  const top = Math.max(3, Math.ceil(Math.max(...points.map((p) => p.mpr))));
+  const y = (v: number) => pad.t + (1 - Math.min(v, top) / top) * (H - pad.t - pad.b);
   const line = points.map((p, i) => `${x(i)},${y(p.mpr)}`).join(" ");
   const avg = points.reduce((a, p) => a + p.mpr, 0) / points.length;
 
   return (
     <div>
       <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label="Form over de siste kampene">
-        {[0, 1, 2, 3].map((v) => (
+        {Array.from({ length: top + 1 }, (_, v) => v).map((v) => (
           <g key={v}>
             <line x1={pad.l} x2={W - pad.r} y1={y(v)} y2={y(v)} stroke="#263247" strokeDasharray={v === 0 ? undefined : "4 4"} />
             <text x={pad.l - 10} y={y(v) + 6} textAnchor="end" fontSize="18" fill="#8a99b3">
@@ -200,7 +201,7 @@ function FormChart({ points }: { points: FormPoint[] }) {
           <g key={p.matchId}>
             <a href={`/kamp/${p.matchId}`}>
               <circle cx={x(i)} cy={y(p.mpr)} r="7" fill={p.won === null ? "#8a99b3" : p.won ? "#34d399" : "#f43f5e"} stroke="#0a0e15" strokeWidth="2">
-                <title>{`${formatDate(p.date)}: ${fmtMpr(p.mpr)} treff per runde${p.won === null ? " (pågår)" : p.won ? " (seier)" : " (tap)"}`}</title>
+                <title>{`${formatDate(p.date)}: ${fmtMpr(p.mpr)} merker per runde${p.won === null ? " (pågår)" : p.won ? " (seier)" : " (tap)"}`}</title>
               </circle>
             </a>
           </g>
