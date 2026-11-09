@@ -6,6 +6,7 @@ import {
   index,
   integer,
   pgTable,
+  primaryKey,
   smallint,
   text,
   timestamp,
@@ -79,12 +80,55 @@ export const verification = pgTable("verification", {
 // Dart
 // ---------------------------------------------------------------------------
 
+export const group = pgTable("group", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  createdBy: text("created_by").references(() => user.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const groupMember = pgTable(
+  "group_member",
+  {
+    groupId: uuid("group_id")
+      .notNull()
+      .references(() => group.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    role: text("role", { enum: ["admin", "member"] }).notNull().default("member"),
+    joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.groupId, t.userId] }), index("group_member_user_idx").on(t.userId)],
+);
+
+// Invitasjonslenke: /bli-med/<kode>. Kan brukes av flere, til den trekkes tilbake.
+export const groupInvite = pgTable(
+  "group_invite",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    groupId: uuid("group_id")
+      .notNull()
+      .references(() => group.id, { onDelete: "cascade" }),
+    code: text("code").notNull().unique(),
+    createdBy: text("created_by").references(() => user.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  },
+  (t) => [index("group_invite_group_idx").on(t.groupId)],
+);
+
 export const match = pgTable(
   "match",
   {
     id: uuid("id").primaryKey().defaultRandom(),
     // Kort, lesbart kampnummer (#42). Deles ut av en identitetskolonne.
     number: integer("number").notNull().unique().generatedByDefaultAsIdentity(),
+    groupId: uuid("group_id")
+      .notNull()
+      .references(() => group.id, { onDelete: "restrict" }),
+    // Kampkode (f.eks. K7Q2X) som lar en TV vise kampen på /tv uten innlogging
+    code: text("code").notNull().unique(),
     gameType: text("game_type").notNull(),
     status: text("status", { enum: ["active", "finished"] }).notNull().default("active"),
     ownerId: text("owner_id")
@@ -95,7 +139,7 @@ export const match = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     finishedAt: timestamp("finished_at", { withTimezone: true }),
   },
-  (t) => [index("match_owner_idx").on(t.ownerId)],
+  (t) => [index("match_owner_idx").on(t.ownerId), index("match_group_idx").on(t.groupId)],
 );
 
 export const team = pgTable(
@@ -170,6 +214,7 @@ export const matchRelations = relations(match, ({ many, one }) => ({
   players: many(player),
   throws: many(dartThrow),
   owner: one(user, { fields: [match.ownerId], references: [user.id] }),
+  group: one(group, { fields: [match.groupId], references: [group.id] }),
 }));
 
 export const teamRelations = relations(team, ({ one, many }) => ({

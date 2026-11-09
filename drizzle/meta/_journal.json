@@ -36,6 +36,13 @@
       "when": 1794242664520,
       "tag": "0004_kast_ring",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794242969498,
+      "tag": "0005_grupper",
+      "breakpoints": true
     }
   ]
 }

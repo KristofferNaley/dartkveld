@@ -12,13 +12,14 @@ const messages: Record<string, string> = {
   PASSWORD_TOO_SHORT: "Passordet må ha minst 8 tegn",
   INVALID_EMAIL: "Ugyldig e-postadresse",
   EMAIL_PASSWORD_SIGN_UP_DISABLED: "Registrering er skrudd av. Spør den som drifter appen.",
+  INVITE_REQUIRED: "Du trenger en gyldig invitasjonslenke for å lage konto",
 };
 
 function safeNext(next: string | null) {
   return next && next.startsWith("/") && !next.startsWith("//") ? next : "/";
 }
 
-export function AuthForm({ mode }: { mode: "login" | "register" }) {
+export function AuthForm({ mode, inviteCode, groupName }: { mode: "login" | "register"; inviteCode?: string; groupName?: string }) {
   const router = useRouter();
   const params = useSearchParams();
   const next = safeNext(params.get("neste"));
@@ -35,7 +36,12 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
     const res =
       mode === "login"
         ? await authClient.signIn.email({ email, password })
-        : await authClient.signUp.email({ email, password, name: String(form.get("name") ?? "").trim() });
+        : await authClient.signUp.email({
+            email,
+            password,
+            name: String(form.get("name") ?? "").trim(),
+            fetchOptions: inviteCode ? { headers: { "x-invite-code": inviteCode } } : undefined,
+          });
     if (res.error) {
       setError((res.error.code && messages[res.error.code]) || res.error.message || "Noe gikk galt");
       setPending(false);
@@ -46,10 +52,12 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
   }
 
   const query = next !== "/" ? `?neste=${encodeURIComponent(next)}` : "";
+  const registerQuery = inviteCode ? `?kode=${encodeURIComponent(inviteCode)}` : query;
   return (
     <Card className="mx-auto max-w-md">
       <form onSubmit={onSubmit} className="space-y-4">
         <h1 className="text-2xl font-bold">{mode === "login" ? "Logg inn" : "Lag konto"}</h1>
+        {mode === "register" && groupName && <p className="text-muted">Du blir med i gruppa <strong className="text-white">{groupName}</strong>.</p>}
         {mode === "register" && (
           <Field label="Visningsnavn">
             <input name="name" required maxLength={40} autoComplete="nickname" className={inputClass} placeholder="F.eks. Kristoffer" />
@@ -75,7 +83,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
         <p className="text-center text-sm text-muted">
           {mode === "login" ? (
             <>
-              Ny her? <Link className="text-accent underline" href={`/registrer${query}`}>Lag konto</Link>
+              Ny her? <Link className="text-accent underline" href={`/registrer${registerQuery}`}>Lag konto</Link>
             </>
           ) : (
             <>

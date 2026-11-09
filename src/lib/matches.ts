@@ -1,11 +1,12 @@
 import "server-only";
 import { randomBytes } from "node:crypto";
-import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { dartThrow, match, player, team, user } from "@/db/schema";
+import { dartThrow, groupMember, match, player, team, user } from "@/db/schema";
 import { replay } from "@/games/core/engine";
 import { GameRuleError, type Dart } from "@/games/core/types";
 import { getGame } from "@/games";
+import { newMatchCode } from "./codes";
 import { setupFromMatch, type MatchDTO } from "./match-types";
 import type { NewMatchInput } from "./validation";
 
@@ -47,6 +48,8 @@ async function fetchMatch(ex: Executor, where: ReturnType<typeof eq>): Promise<M
   return {
     id: row.id,
     number: row.number,
+    groupId: row.groupId,
+    code: row.code,
     gameType: row.gameType,
     status: row.status,
     ownerId: row.ownerId,
@@ -74,6 +77,10 @@ export function getMatch(id: string, ex: Executor = db) {
 
 export function getMatchByShareToken(token: string) {
   return fetchMatch(db, eq(match.shareToken, token));
+}
+
+export function getMatchByCode(code: string) {
+  return fetchMatch(db, eq(match.code, code));
 }
 
 export function isParticipant(m: MatchDTO, userId: string): boolean {
@@ -163,16 +170,31 @@ export async function undoLastDart(matchId: string, userId: string, expectedSeq:
   });
 }
 
-export async function createMatch(ownerId: string, input: NewMatchInput): Promise<string> {
+export async function createMatch(ownerId: string, groupId: string, input: NewMatchInput): Promise<string> {
   const userIds = input.teams.flatMap((t) => t.players.flatMap((p) => (p.kind === "user" ? [p.userId] : [])));
+  // Registrerte spillere må være med i gruppa kampen opprettes i
   const users = userIds.length
-    ? await db.select({ id: user.id, name: user.name }).from(user).where(inArray(user.id, userIds))
+    ? await db
+        .select({ id: user.id, name: user.name })
+        .from(groupMember)
+        .innerJoin(user, eq(user.id, groupMember.userId))
+        .where(and(eq(groupMember.groupId, groupId), inArray(groupMember.userId, userIds)))
     : [];
   const names = new Map(users.map((u) => [u.id, u.name]));
-  for (const id of userIds) if (!names.has(id)) throw new MatchError(400, "Ukjent bruker valgt");
+  for (const id of userIds) if (!names.has(id)) throw new MatchError(400, "Alle spillere må være med i gruppa");
 
   return db.transaction(async (tx) => {
-    const [m] = await tx.insert(match).values({ gameType: input.gameType, ownerId }).returning({ id: match.id });
+    // Kampkoden er unik. Kollisjoner er sjeldne (32^5), men prøv på nytt hvis det skjer.
+    let m: { id: string } | undefined;
+    for (let attempt = 0; !m; attempt++) {
+      const rows = await tx
+        .insert(match)
+        .values({ gameType: input.gameType, ownerId, groupId, code: newMatchCode() })
+        .onConflictDoNothing({ target: match.code })
+        .returning({ id: match.id });
+      m = rows[0];
+      if (!m && attempt >= 5) throw new MatchError(500, "Kunne ikke lage kampkode");
+    }
     for (const [ti, t] of input.teams.entries()) {
       // Lagene heter alltid Lag 1, Lag 2 ... (deltakerne vises ved siden av)
       const [tr] = await tx.insert(team).values({ matchId: m.id, name: teamNameFor(ti), position: ti }).returning({ id: team.id });
@@ -206,15 +228,10 @@ export async function setSharing(matchId: string, userId: string, enabled: boole
   return res[0].token;
 }
 
-export async function listUsers() {
-  return db.select({ id: user.id, name: user.name }).from(user).orderBy(asc(user.name));
-}
-
-/** Kamper brukeren eier eller er med i, nyeste først. */
-export async function listMatchesForUser(userId: string, limit = 50) {
-  const ids = db.selectDistinct({ id: player.matchId }).from(player).where(eq(player.userId, userId));
+/** Alle kampene i en gruppe, nyeste først. «mine» og «isOwner» gjelder innlogget bruker. */
+export async function listMatchesForGroup(groupId: string, userId: string, limit = 50) {
   const rows = await db.query.match.findMany({
-    where: or(eq(match.ownerId, userId), inArray(match.id, ids)),
+    where: eq(match.groupId, groupId),
     orderBy: [desc(match.createdAt)],
     limit,
     with: {
@@ -244,7 +261,8 @@ export async function listMatchesForUser(userId: string, limit = 50) {
   }));
 }
 
-export async function statsForUser(userId: string) {
+/** Seire og kamper for en bruker, i én gruppe eller (groupId = null) i alle. */
+export async function statsForUser(userId: string, groupId: string | null) {
   const [row] = await db
     .select({
       played: sql<number>`count(distinct ${match.id})::int`,
@@ -252,7 +270,7 @@ export async function statsForUser(userId: string) {
     })
     .from(player)
     .innerJoin(match, eq(match.id, player.matchId))
-    .where(and(eq(player.userId, userId), eq(match.status, "finished")));
+    .where(and(eq(player.userId, userId), eq(match.status, "finished"), groupId ? eq(match.groupId, groupId) : undefined));
   const played = row?.played ?? 0;
   const won = row?.won ?? 0;
   return { played, won, winRate: played ? won / played : 0 };

@@ -17,6 +17,10 @@ export interface MatchDTO {
   id: string;
   /** Kort kampnummer (#42) */
   number: number;
+  /** Gruppa kampen hører til */
+  groupId: string;
+  /** Kampkode som lar en TV vise kampen på /tv */
+  code: string;
   gameType: string;
   status: "active" | "finished";
   ownerId: string;
