@@ -29,7 +29,7 @@ Appen er laget for å koble seg til en **eksisterende PostgreSQL-server** (14 el
    docker compose up -d --build
    ```
 
-Appen svarer på <http://localhost:3014>, eller porten du setter i `APP_PORT`. Migrasjonene kjøres automatisk mot databasen hver gang app-containeren starter, så tabellene lages første gang. Når alle i gjengen har laget konto, kan du sette `DISABLE_SIGNUP=true` og kjøre `docker compose up -d`.
+Appen svarer på <http://localhost:3014>, eller porten du setter i `APP_PORT`. Migrasjonene kjøres automatisk mot databasen hver gang app-containeren starter, så tabellene lages første gang. Registrering krever en invitasjonslenke fra en gruppe (se under). Bare den aller første brukeren kan registrere seg uten. Vil du stenge helt, sett `DISABLE_SIGNUP=true` og kjør `docker compose up -d`.
 
 Kjører Postgres utenfor Docker, kan `DATABASE_URL` peke på `host.docker.internal` eller en IP i stedet. Da kan du fjerne `db`-nettverket fra `docker-compose.yml`.
 
@@ -43,7 +43,8 @@ Kjører Postgres utenfor Docker, kan `DATABASE_URL` peke på `host.docker.intern
 | `BETTER_AUTH_URL` | Offentlig adresse, f.eks. `https://dart.example.no` |
 | `APP_URL` | Samme adresse. Brukes til delingslenker og Open Graph. |
 | `APP_PORT` | Port på verten (valgfri, standard 3014, bundet til 127.0.0.1) |
-| `DISABLE_SIGNUP` | `true` skrur av registrering |
+| `ADMIN_EMAILS` | Kommaseparert liste over admin-adresser. Gir tilgang til `/admin`. En konto får rollen første gang den er innom etter at adressen er lagt til. |
+| `DISABLE_SIGNUP` | `true` skrur av all registrering, også med invitasjon |
 
 ### Bak reverse proxy
 
@@ -104,11 +105,25 @@ src/
   lib/live/feed.ts       Live-oppdatering (polling hvert 2. sek, kan byttes til SSE)
   hooks/                 useScoring (optimistisk kø), useLiveMatch, useWakeLock
   app/
-    (app)/               Innlogget app: forside, ny kamp, kamp, historikk, profil
-    (tv)/kamp/[id]/vis   Visningsmodus for storskjerm
+    (app)/               Innlogget app: forside, ny kamp, kamp, historikk, profil, grupper, hjelp, admin
+    (tv)/kamp/[id]/vis   Visningsmodus for storskjerm (innlogget medlem)
+    (tv)/tv, tv/[code]   Visning på TV med kampkode, uten innlogging (skrivebeskyttet)
     r/[token]            Offentlig resultatside + OG-bilde
-    api/kamper/[id]      GET (polling), POST kast, POST angre
+    api/kamper/[id]      GET (polling, medlemmer), POST kast, POST angre
+    api/tv/[code]        GET (polling uten innlogging, nøkkel = kampkoden)
+    manifest.ts, icon*   Webapp-manifest og ikoner (hjemskjerm på iPhone og Android)
 ```
+
+### Grupper, invitasjoner og kampkode
+
+- Kamper, spillere og statistikk hører til en **gruppe** (`group`, `group_member`, `group_invite`, `match.group_id`). Alle innloggede kan lage grupper og blir admin i dem. En bruker kan være med i flere, og den aktive gruppa ligger i en cookie (`dart_gruppe`).
+- **Invitasjonslenke** `/bli-med/<kode>`. Registrering krever en gyldig kode (headeren `x-invite-code` sjekkes i en Better Auth-hook i `src/lib/auth.ts`). Gruppeadmin kan lage ny lenke, som gjør den gamle ugyldig.
+- Hver kamp har en **kampkode** på fem tegn (`match.code`). `/tv` tar imot koden og viser kampen uten innlogging. Koden gir bare visning, og polling går via `/api/tv/<kode>` som aldri sender ut delingslenken. Å føre poeng krever innlogging og at man er deltaker eller eier.
+- Migrasjon 0005 flyttet alle eksisterende brukere og kamper inn i gruppa «Dartkveld».
+
+### Admin
+
+`/admin` (oversikt over bruk per uke) og `/admin/brukere` (nytt midlertidig passord, sperre, slett) er bare for admin. Admin er brukere med rollen `admin`: adresser i `ADMIN_EMAILS` får den automatisk. Appen bruker Better Auth sin `admin`-utvidelse (kolonnene `role`, `banned`, `ban_reason`, `ban_expires`). Å slette en bruker sletter også kampene brukeren opprettet (bekreftelsen viser hvor mange).
 
 **Kampstate** lagres aldri. Den utledes alltid fra kastlisten (`throw`-tabellen) med `replay()`. Klienten og serveren bruker den samme spillmodulen. Angre er «slett siste kast». Hvert kast sendes med forventet løpenummer (`expectedSeq`), så to telefoner som fører samtidig får en konflikt (409) i stedet for doble kast.
 
@@ -122,8 +137,9 @@ src/
 
 `/statistikk` viser egen statistikk, `/statistikk/gjengen` viser en tabell for alle, og `/statistikk/spiller/[id]` viser en annen spiller. Alt regnes ut fra `throw`-tabellen ved hver visning, i rene funksjoner i `src/lib/stats/compute.ts` (med tester). Databasen har ingen egne statistikktabeller.
 
-- **Treff** er piler som traff et felt som teller i spillet. Appen lagrer hva pila telte på, ikke nøyaktig hvor den landet.
-- **Treff per runde** er treff delt på antall piler, ganget med 3 (det vanlige målet i cricket-dart, «marks per round»).
+- **Treff** er piler som ga minst ett merke. **Merker** er det pila ville gitt på et åpent felt: single 1, dobbel 2, trippel 3, Bull 1, Bullseye 2 (en dobbel/trippel som telte på Dobbel-/Trippel-feltet gir 1).
+- **Merker per runde** er merker delt på antall piler, ganget med 3 (det vanlige målet i cricket-dart, «marks per round»).
+- **Favorittfelt** telles på tallet pila faktisk traff, uansett ring.
 - Bare registrerte brukere er med. Gjester telles ikke. Seier på lag teller for alle på laget, mens kast bare teller for den som kastet.
 - Kast etter midnatt hører til kvelden før («Kveldens beste»).
 
@@ -131,8 +147,9 @@ src/
 
 Reglene ligger i `src/games/mickey-mouse/rules.ts`, med tester ved siden av. Endrer du reglene der, følger resten av appen etter.
 
-- Feltene 20–15, Dobbel, Trippel og Bull teller, i valgfri rekkefølge. Dobbel er et treff hvor som helst i dobbelringen, og Trippel hvor som helst i trippelringen. Den som fører velger hvilket felt pila teller på.
-- Hvert treff teller 1. Tastaturet har derfor ikke multiplikatorvalg.
+- Feltene 20–15, Dobbel, Trippel og Bull teller, i valgfri rekkefølge. Pila føres slik den landet, med tall og ring: single gir 1 treff på tallet, dobbel 2 og trippel 3. En dobbel/trippel på 15–20 kan i stedet telle som ett treff på Dobbel-/Trippel-feltet (den som fører velger, `ring: true`). En dobbel/trippel på 1–14 teller bare på Dobbel/Trippel, og en single på 1–14 er bom.
+- Bull (grønn) gir 1 treff og Bullseye (rød, `multiplier: 2` på felt 25) gir 2 treff på Bull. Bullseye teller ikke som Dobbel.
+- Treff utover tre på et felt forsvinner. Eldre kast med feltkode 102/103 (Dobbel/Trippel uten tall) teller 1 treff på ringen som før.
 - Tre treff lukker et felt for laget. Treff på et felt laget allerede har lukket, teller ikke.
 - Et felt er stengt når alle lag har lukket det (vises på tavla).
 - Ingen poeng: laget som først lukker alle feltene, vinner med en gang. Pilene som er igjen i runden ignoreres.
