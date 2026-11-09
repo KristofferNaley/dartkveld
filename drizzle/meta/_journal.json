@@ -50,6 +50,13 @@
       "when": 1794243392110,
       "tag": "0006_admin",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794244105183,
+      "tag": "0007_kast_tall_og_ring",
+      "breakpoints": true
     }
   ]
 }

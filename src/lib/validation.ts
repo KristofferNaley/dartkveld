@@ -7,6 +7,7 @@ export const dartSchema = z.object({
   multiplier: z.union([z.literal(1), z.literal(2), z.literal(3)]),
   // Dobbel/trippel som telte på Dobbel-/Trippel-feltet i stedet for tallet
   ring: z.boolean().optional(),
+  numberMarks: z.number().int().min(1).max(2).optional(),
 });
 
 export const registerDartsSchema = z.object({

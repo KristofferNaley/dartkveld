@@ -85,7 +85,11 @@ export function roundsSummary(state: BaseGameState): TeamRound[][] {
       entry = { teamIndex: d.teamIndex, playerId: d.playerId, darts: [], marks: 0, points: 0 };
       round.push(entry);
     }
-    entry.darts.push(d.ring ? { field: d.field, multiplier: d.multiplier, ring: true } : { field: d.field, multiplier: d.multiplier });
+    entry.darts.push(
+      d.ring
+        ? { field: d.field, multiplier: d.multiplier, ring: true, ...(d.numberMarks ? { numberMarks: d.numberMarks } : {}) }
+        : { field: d.field, multiplier: d.multiplier },
+    );
     entry.marks += d.marks;
     entry.points += d.points;
   }
@@ -106,6 +110,8 @@ export function formatDart(dart: Dart): string {
   if (dart.field === BULL) return dart.multiplier === 2 ? "Bullseye" : "Bull";
   const prefix = dart.multiplier === 3 ? "T" : dart.multiplier === 2 ? "D" : "";
   const text = prefix + fieldName(dart.field);
-  // Pila telte på ringen, ikke tallet: «T20 → Trippel»
-  return dart.ring ? `${text} → ${dart.multiplier === 3 ? "Trippel" : "Dobbel"}` : text;
+  if (!dart.ring) return text;
+  // Pila gir treff på ringen: «T20 → Trippel» eller, delt med tallet, «T20 → 2×20 + Trippel»
+  const ring = dart.multiplier === 3 ? "Trippel" : "Dobbel";
+  return dart.numberMarks ? `${text} → ${dart.numberMarks}×${dart.field} + ${ring}` : `${text} → ${ring}`;
 }

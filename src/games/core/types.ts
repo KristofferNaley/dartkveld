@@ -16,10 +16,15 @@ export interface Dart {
   /** Ringen pila traff: 1 = single, 2 = dobbel (Bullseye på 25), 3 = trippel. */
   multiplier: Multiplier;
   /**
-   * Bare for dobbel/trippel på 15–20: pila telte på Dobbel-/Trippel-feltet i stedet for tallet.
-   * Mangler den, teller pila på tallet.
+   * Bare for dobbel/trippel på 15–20: pila gir også (eller bare) ett treff på Dobbel-/Trippel-feltet.
+   * Mangler den, teller pila bare på tallet.
    */
   ring?: boolean;
+  /**
+   * Sammen med ring: hvor mange av pilas treff som går på tallet, resten (ett) på Dobbel-/Trippel-feltet.
+   * T19 med numberMarks 2 = 2 treff på 19 og 1 på Trippel. Mangler den, går bare ringen (1 treff) på ringen.
+   */
+  numberMarks?: number;
 }
 
 export interface PlayerSetup {

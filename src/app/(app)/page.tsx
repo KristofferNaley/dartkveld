@@ -32,9 +32,11 @@ export default async function HomePage() {
       </div>
     );
   }
-  const [matches, stats] = await Promise.all([listMatchesForGroup(group.id, user.id, 10), statsForUser(user.id, group.id)]);
+  const [matches, stats] = await Promise.all([listMatchesForGroup(group.id, user.id, 40), statsForUser(user.id, group.id)]);
   const active = matches.filter((m) => m.status === "active");
-  const finished = matches.filter((m) => m.status === "finished").slice(0, 5);
+  // «Siste kamper» viser bare dine egne: kamper du har spilt eller opprettet
+  const mine = (m: (typeof matches)[number]) => m.isOwner || m.teams.some((t) => t.mine);
+  const finished = matches.filter((m) => m.status === "finished" && mine(m)).slice(0, 5);
 
   return (
     <div className="space-y-8">
@@ -63,7 +65,7 @@ export default async function HomePage() {
 
       <section>
         <div className="mb-3 flex items-baseline justify-between">
-          <h2 className="text-lg font-semibold">Siste kamper i {group.name}</h2>
+          <h2 className="text-lg font-semibold">Dine siste kamper</h2>
           <Link href="/historikk" className="text-sm text-accent">Se alle</Link>
         </div>
         <MatchList matches={finished} empty="Ingen ferdige kamper ennå." />

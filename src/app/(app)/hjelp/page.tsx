@@ -38,9 +38,9 @@ export default function HelpPage() {
             Valget går tilbake til Single etter hvert kast.
           </p>
           <p>
-            <strong>Dobbel 19</strong> gir 2 treff på 19, og <strong>Trippel 20</strong> gir 3 treff på 20. Treff utover tre forsvinner.
-            Etter en dobbel eller trippel på 15–20 velger du om pila skal telle på <strong>tallet</strong> (2 eller 3 treff)
-            eller på <strong>Dobbel/Trippel</strong>-feltet (1 treff).
+            Etter en dobbel eller trippel på 15–20 velger du hva pila gir. <strong>Trippel 19</strong> kan være <strong>3 treff på 19</strong>,
+            <strong> 2 treff på 19 og 1 på Trippel</strong> (når du bare trenger to på 19), eller <strong>bare 1 på Trippel</strong>. En
+            <strong> dobbel 19</strong> kan være 2 på 19, 1 på 19 og 1 på Dobbel, eller bare 1 på Dobbel. Treff utover tre på et felt forsvinner.
           </p>
           <p>
             Dobbel og trippel på tallene 1–14 teller bare på Dobbel/Trippel. Trykk <strong>Annet tall</strong> etter at du har valgt

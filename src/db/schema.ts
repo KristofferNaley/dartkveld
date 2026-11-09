@@ -205,6 +205,8 @@ export const dartThrow = pgTable(
     multiplier: smallint("multiplier").notNull(),
     // Dobbel/trippel på 15–20 som telte på Dobbel-/Trippel-feltet i stedet for tallet
     ring: boolean("ring").notNull().default(false),
+    // Med ring: antall treff som gikk på tallet (resten, ett, på ringen). Null = bare ringen.
+    numberMarks: smallint("number_marks"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [

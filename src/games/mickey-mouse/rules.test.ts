@@ -232,6 +232,36 @@ describe("hjelpere", () => {
 });
 
 describe("tallverdi: dobbel og trippel", () => {
+  it("T19 kan deles: 2 på 19 og 1 på Trippel", () => {
+    const s = play(setup(2), [{ field: 19, multiplier: 3, ring: true, numberMarks: 2 }]);
+    expect(s.teams[0].marks[19]).toBe(2);
+    expect(s.teams[0].marks[ANY_TRIPLE]).toBe(1);
+    expect(s.log[0].marks).toBe(3);
+  });
+
+  it("D19 kan deles: 1 på 19 og 1 på Dobbel", () => {
+    const s = play(setup(2), [{ field: 19, multiplier: 2, ring: true, numberMarks: 1 }]);
+    expect(s.teams[0].marks[19]).toBe(1);
+    expect(s.teams[0].marks[ANY_DOUBLE]).toBe(1);
+  });
+
+  it("delt kast: treff over tre på tallet forsvinner, ringen teller likevel", () => {
+    const s = play(setup(2), [d(19), d(19), { field: 19, multiplier: 3, ring: true, numberMarks: 2 }]);
+    expect(s.teams[0].marks[19]).toBe(3);
+    expect(s.teams[0].marks[ANY_TRIPLE]).toBe(1);
+    expect(s.log[2].marks).toBe(2);
+  });
+
+  it("ugyldig fordeling avvises", () => {
+    expect(() => play(setup(2), [{ field: 19, multiplier: 3, ring: true, numberMarks: 3 }])).toThrow(GameRuleError);
+    expect(() => play(setup(2), [{ field: 19, multiplier: 2, ring: true, numberMarks: 2 }])).toThrow(GameRuleError);
+    expect(() => play(setup(2), [{ field: 19, multiplier: 3, numberMarks: 2 }])).toThrow(GameRuleError);
+  });
+
+  it("formaterer delt kast", () => {
+    expect(formatDart({ field: 19, multiplier: 3, ring: true, numberMarks: 2 })).toBe("T19 → 2×19 + Trippel");
+  });
+
   it("T20 teller 3 treff på 20 og lukker feltet i ett kast", () => {
     const s = play(setup(2), [d(20, 3)]);
     expect(s.teams[0].marks[20]).toBe(3);

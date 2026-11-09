@@ -1,0 +1,1 @@
+ALTER TABLE "throw" ADD COLUMN "number_marks" smallint;

@@ -24,6 +24,7 @@ export interface StatDart {
   multiplier?: Multiplier;
   /** Dobbel/trippel som telte på Dobbel-/Trippel-feltet i stedet for tallet */
   ring?: boolean;
+  numberMarks?: number | null;
   createdAt: Date;
 }
 
@@ -84,7 +85,11 @@ export interface PlayerStats {
   form: FormPoint[];
 }
 
-const dartOf = (d: StatDart) => ({ field: d.field, multiplier: d.multiplier ?? 1, ...(d.ring ? { ring: true } : {}) });
+const dartOf = (d: StatDart) => ({
+  field: d.field,
+  multiplier: d.multiplier ?? 1,
+  ...(d.ring ? { ring: true, ...(d.numberMarks ? { numberMarks: d.numberMarks } : {}) } : {}),
+});
 const marksOf = (d: StatDart) => rawMarks(dartOf(d));
 const isHit = (d: StatDart) => marksOf(d) > 0;
 const sumMarks = (ds: StatDart[]) => ds.reduce((n, d) => n + marksOf(d), 0);

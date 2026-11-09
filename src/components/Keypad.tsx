@@ -10,6 +10,17 @@ const RING_NAME: Record<2 | 3, string> = { 2: "Dobbel", 3: "Trippel" };
 const MAIN_NUMBERS = [20, 19, 18, 17, 16, 15];
 const OTHER_NUMBERS = Array.from({ length: 14 }, (_, i) => i + 1);
 
+/** Valgene etter en dobbel/trippel på 15–20: alt på tallet, delt mellom tallet og ringen, eller bare ringen. */
+function choices(field: number, mult: 2 | 3): { label: string; hint: string; dart: Dart }[] {
+  const ring = RING_NAME[mult];
+  const base = { field, multiplier: mult };
+  return [
+    { label: `${field} ×${mult}`, hint: `${mult} treff på ${field}`, dart: base },
+    { label: `${field} ×${mult - 1} + ${ring}`, hint: `${mult - 1} på ${field} og 1 på ${ring}`, dart: { ...base, ring: true, numberMarks: mult - 1 } },
+    { label: `Bare ${ring}`, hint: `1 treff på ${ring}`, dart: { ...base, ring: true } },
+  ];
+}
+
 const key =
   "tabular h-16 rounded-xl border border-line bg-panel-2 text-2xl font-black active:bg-accent active:text-accent-ink disabled:opacity-30 sm:h-20 sm:text-3xl";
 
@@ -85,21 +96,15 @@ export function Keypad({
         <div className="space-y-2.5 rounded-2xl border border-line bg-panel p-3" role="group" aria-label="Hva skal pila telle på?">
           <p className="text-center font-semibold">
             {PREFIX[pending.mult]}
-            {pending.field} teller på:
+            {pending.field} gir:
           </p>
-          <div className="grid grid-cols-2 gap-2">
-            <button type="button" className={`${key} text-xl sm:text-2xl`} onClick={() => send({ field: pending.field, multiplier: pending.mult })}>
-              {pending.field}
-              <span className="block text-sm font-semibold text-muted">{pending.mult} treff</span>
-            </button>
-            <button
-              type="button"
-              className={`${key} text-xl sm:text-2xl`}
-              onClick={() => send({ field: pending.field, multiplier: pending.mult, ring: true })}
-            >
-              {RING_NAME[pending.mult]}
-              <span className="block text-sm font-semibold text-muted">1 treff</span>
-            </button>
+          <div className="grid gap-2">
+            {choices(pending.field, pending.mult).map((c) => (
+              <button key={c.label} type="button" className={`${key} !h-auto py-3 text-xl sm:text-2xl`} onClick={() => send(c.dart)}>
+                {c.label}
+                <span className="block text-sm font-semibold text-muted">{c.hint}</span>
+              </button>
+            ))}
           </div>
           <button type="button" onClick={() => setPending(null)} className="h-11 w-full rounded-xl text-muted hover:bg-panel-2">
             Avbryt

@@ -5,8 +5,8 @@
  * - Felt som teller: 20–15, Dobbel, Trippel og Bull, i valgfri rekkefølge.
  * - Pila registreres slik den landet: tall og ring (single, dobbel, trippel).
  *   Treff på tall 15–20 teller 1 (single), 2 (dobbel) eller 3 (trippel) treff på tallet.
- *   Dobbel og trippel på 15–20 kan i stedet telle som ett treff på Dobbel-/Trippel-feltet:
- *   den som fører velger (ring-valget). En dobbel/trippel på 1–14 teller bare på Dobbel/Trippel.
+ *   Dobbel og trippel på 15–20 kan i stedet fordeles: ett treff på Dobbel-/Trippel-feltet og resten på tallet
+ *   (T19: 3 på 19, eller 2 på 19 + 1 på Trippel, eller bare 1 på Trippel). Den som fører velger. En dobbel/trippel på 1–14 teller bare på Dobbel/Trippel.
  *   En single på 1–14 er bom.
  * - Bull (grønn, ytre) gir 1 treff, Bullseye (rød, midten) gir 2 treff, begge på Bull. Bullseye er ikke en Dobbel.
  * - Et felt er lukket for laget etter 3 treff. Treff utover 3 og treff på et lukket felt teller ikke.
@@ -94,14 +94,19 @@ export function hitsFor(dart: Dart): Hit[] {
     return [{ field: BULL, marks: multiplier }];
   }
   if (!Number.isInteger(field) || field < 1 || field > 20) throw new GameRuleError(`Ugyldig felt: ${field}`);
+  if (dart.numberMarks !== undefined && !dart.ring) throw new GameRuleError("Ugyldig kast");
   if (multiplier === 1) {
     if (dart.ring) throw new GameRuleError("Single kan ikke telle på Dobbel eller Trippel");
     if (field < LOWEST_NUMBER_TARGET) throw new GameRuleError(`Single på ${field} teller ikke. Registrer en bom.`);
     return [{ field, marks: 1 }];
   }
   const ringField = multiplier === 2 ? ANY_DOUBLE : ANY_TRIPLE;
-  if (field < LOWEST_NUMBER_TARGET || dart.ring) return [{ field: ringField, marks: 1 }];
-  return [{ field, marks: multiplier }];
+  if (field < LOWEST_NUMBER_TARGET) return [{ field: ringField, marks: 1 }];
+  if (!dart.ring) return [{ field, marks: multiplier }];
+  // Pila deles mellom tallet og ringen: ett treff på ringen, resten (0 til multiplier-1) på tallet
+  const onNumber = dart.numberMarks ?? 0;
+  if (!Number.isInteger(onNumber) || onNumber < 0 || onNumber >= multiplier) throw new GameRuleError("Ugyldig fordeling av treff");
+  return onNumber > 0 ? [{ field, marks: onNumber }, { field: ringField, marks: 1 }] : [{ field: ringField, marks: 1 }];
 }
 
 /** Treff pila ville gitt på et åpent felt, uten å regne med lukking. Brukes av statistikken. */
