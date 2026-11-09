@@ -1,23 +1,30 @@
 "use client";
 import { useState } from "react";
-import { fieldName } from "@/games/core/engine";
-import type { Dart, Field, Game, Multiplier } from "@/games/core/types";
+import type { Dart, Multiplier } from "@/games/core/types";
 
 const MULT_LABEL: Record<Multiplier, string> = { 1: "Single", 2: "Double", 3: "Triple" };
+const PREFIX: Record<Multiplier, string> = { 1: "", 2: "D", 3: "T" };
+const RING_NAME: Record<2 | 3, string> = { 2: "Dobbel", 3: "Trippel" };
+
+/** Tallene som har egne knapper. Alle andre tall (1–14) kan bare treffes som dobbel eller trippel. */
+const MAIN_NUMBERS = [20, 19, 18, 17, 16, 15];
+const OTHER_NUMBERS = Array.from({ length: 14 }, (_, i) => i + 1);
+
+const key =
+  "tabular h-16 rounded-xl border border-line bg-panel-2 text-2xl font-black active:bg-accent active:text-accent-ink disabled:opacity-30 sm:h-20 sm:text-3xl";
 
 /**
- * Tastatur uavhengig av dartskive: velg multiplikator, trykk felt. Multiplikatoren
- * går tilbake til single etter hvert kast.
+ * Tastatur for Mickey Mouse: velg Single/Double/Triple, så tallet pila traff. Valget går
+ * tilbake til Single etter hvert kast. Dobbel og trippel på 15–20 gir et ekstra valg:
+ * skal pila telle på tallet eller på Dobbel-/Trippel-feltet?
  */
 export function Keypad({
-  game,
   disabled,
   dartsLeft,
   canUndo,
   onDarts,
   onUndo,
 }: {
-  game: Game;
   disabled: boolean;
   dartsLeft: number;
   canUndo: boolean;
@@ -25,22 +32,28 @@ export function Keypad({
   onUndo: () => void;
 }) {
   const [mult, setMult] = useState<Multiplier>(1);
-  // Spill der alle treff teller likt (f.eks. Mickey Mouse) trenger ikke multiplikatorvalg
-  const hasMultipliers = game.targets.some((f) => game.multipliersFor(f).length > 1);
-  // Tre kolonner når feltene går opp (f.eks. 9 felt), ellers fire
-  const cols = !hasMultipliers && game.targets.length % 3 === 0 ? 3 : 4;
-  const cells = game.targets.length + (hasMultipliers ? 1 : 0); // Bull er dobbel bredde med multiplikatorer
-  const missSpan = cols - (cells % cols) || cols;
+  const [other, setOther] = useState(false);
+  const [pending, setPending] = useState<{ field: number; mult: 2 | 3 } | null>(null);
 
-  const hit = (field: Field) => {
-    onDarts([{ field, multiplier: field === 0 ? 1 : mult }]);
+  const send = (dart: Dart) => {
+    onDarts([dart]);
     setMult(1);
+    setOther(false);
+    setPending(null);
   };
+
+  const pickNumber = (field: number) => {
+    if (mult === 1) return send({ field, multiplier: 1 });
+    // Tall under 15 er ikke eget felt, så de teller alltid på ringen
+    if (field < 15) return send({ field, multiplier: mult });
+    setPending({ field, mult });
+  };
+
+  const label = (field: number) => `${PREFIX[mult]}${field}`;
 
   return (
     <div className="touch-pad space-y-2.5">
-      {hasMultipliers && (
-      <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Multiplikator">
+      <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Ring">
         {([1, 2, 3] as Multiplier[]).map((m) => (
           <button
             key={m}
@@ -48,7 +61,11 @@ export function Keypad({
             role="radio"
             aria-checked={mult === m}
             disabled={disabled}
-            onClick={() => setMult(m === mult ? 1 : m)}
+            onClick={() => {
+              setMult(m === mult ? 1 : m);
+              setOther(false);
+              setPending(null);
+            }}
             className={`h-14 rounded-xl border-2 text-lg font-bold transition disabled:opacity-40 ${
               mult === m
                 ? m === 1
@@ -63,36 +80,81 @@ export function Keypad({
           </button>
         ))}
       </div>
-      )}
 
-      <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
-        {game.targets.map((f) => {
-          const allowed = game.multipliersFor(f).includes(mult);
-          return (
-            <button
-              key={f}
-              type="button"
-              disabled={disabled || !allowed}
-              onClick={() => hit(f)}
-              className={`tabular h-16 rounded-xl border border-line bg-panel-2 text-2xl font-black active:bg-accent active:text-accent-ink disabled:opacity-30 sm:h-20 sm:text-3xl ${
-                f === 25 && hasMultipliers ? "col-span-2 text-xl sm:text-2xl" : f === 25 || f > 25 ? "text-xl sm:text-2xl" : ""
-              }`}
-            >
-              {mult === 2 && f !== 25 ? "D" : mult === 3 ? "T" : ""}
-              {f === 25 && mult === 2 ? "Bullseye" : fieldName(f)}
+      {pending ? (
+        <div className="space-y-2.5 rounded-2xl border border-line bg-panel p-3" role="group" aria-label="Hva skal pila telle på?">
+          <p className="text-center font-semibold">
+            {PREFIX[pending.mult]}
+            {pending.field} teller på:
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <button type="button" className={`${key} text-xl sm:text-2xl`} onClick={() => send({ field: pending.field, multiplier: pending.mult })}>
+              {pending.field}
+              <span className="block text-sm font-semibold text-muted">{pending.mult} treff</span>
             </button>
-          );
-        })}
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={() => hit(0)}
-          style={{ gridColumn: `span ${missSpan} / span ${missSpan}` }}
-          className="h-16 rounded-xl border border-line bg-bg text-xl font-bold text-muted active:bg-line disabled:opacity-30 sm:h-20"
-        >
-          Bom
-        </button>
-      </div>
+            <button
+              type="button"
+              className={`${key} text-xl sm:text-2xl`}
+              onClick={() => send({ field: pending.field, multiplier: pending.mult, ring: true })}
+            >
+              {RING_NAME[pending.mult]}
+              <span className="block text-sm font-semibold text-muted">1 treff</span>
+            </button>
+          </div>
+          <button type="button" onClick={() => setPending(null)} className="h-11 w-full rounded-xl text-muted hover:bg-panel-2">
+            Avbryt
+          </button>
+        </div>
+      ) : other ? (
+        <div className="space-y-2.5 rounded-2xl border border-line bg-panel p-3">
+          <p className="text-center font-semibold">
+            {MULT_LABEL[mult]}: hvilket tall? <span className="font-normal text-muted">(teller på {RING_NAME[mult === 3 ? 3 : 2]})</span>
+          </p>
+          <div className="grid grid-cols-5 gap-2">
+            {OTHER_NUMBERS.map((n) => (
+              <button key={n} type="button" disabled={disabled} onClick={() => pickNumber(n)} className={`${key} !h-14 !text-xl`}>
+                {label(n)}
+              </button>
+            ))}
+          </div>
+          <button type="button" onClick={() => setOther(false)} className="h-11 w-full rounded-xl text-muted hover:bg-panel-2">
+            Tilbake
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 gap-2">
+          {MAIN_NUMBERS.map((n) => (
+            <button key={n} type="button" disabled={disabled} onClick={() => pickNumber(n)} className={key}>
+              {label(n)}
+            </button>
+          ))}
+          <button
+            type="button"
+            disabled={disabled || mult === 1}
+            onClick={() => setOther(true)}
+            className={`${key} !text-base sm:!text-lg`}
+            title={mult === 1 ? "Velg Double eller Triple først" : undefined}
+          >
+            Annet tall
+          </button>
+          <button type="button" disabled={disabled} onClick={() => send({ field: 25, multiplier: 1 })} className={`${key} !text-xl sm:!text-2xl`}>
+            Bull
+            <span className="block text-xs font-semibold text-ok">grønn</span>
+          </button>
+          <button type="button" disabled={disabled} onClick={() => send({ field: 25, multiplier: 2 })} className={`${key} !text-xl sm:!text-2xl`}>
+            Bullseye
+            <span className="block text-xs font-semibold text-danger">rød</span>
+          </button>
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => send({ field: 0, multiplier: 1 })}
+            className="col-span-3 h-16 rounded-xl border border-line bg-bg text-xl font-bold text-muted active:bg-line disabled:opacity-30 sm:h-20"
+          >
+            Bom
+          </button>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-2">
         <button

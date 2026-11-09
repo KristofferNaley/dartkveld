@@ -73,7 +73,7 @@ export function MickeyBoard({ match, state, highlightTurn = true }: { match: Mat
 export function Legend({ big = false }: { big?: boolean }) {
   return (
     <div className={`flex flex-wrap items-center justify-center px-3 py-2 text-muted ${big ? "gap-[3vw] text-[2.2vh]" : "gap-4 text-xs"}`}>
-      <span>🎯 = ett treff, tre treff lukker feltet</span>
+      <span>🎯 = ett treff, tre treff lukker feltet (T20 = tre på 20 eller ett på Trippel)</span>
       <span className="flex items-center gap-1.5">
         <span className={`rounded bg-white/30 ${big ? "h-[2.4vh] w-[2.4vh]" : "h-3 w-3"}`} /> Lukket
       </span>

@@ -54,7 +54,6 @@ export function MatchScreen({
           <ErrorText>{error}</ErrorText>
           {canScore ? (
             <Keypad
-              game={game}
               disabled={state.finished}
               dartsLeft={state.finished ? 0 : game.dartsPerTurn - state.turn.dartIndex}
               canUndo={match.throws.length > 0}
