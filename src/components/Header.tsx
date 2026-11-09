@@ -29,6 +29,9 @@ export async function Header() {
               </svg>
               Profil
             </Link>
+            <Link href="/hjelp" aria-label="Hjelp" title="Hjelp" className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted hover:bg-panel-2 hover:text-white">
+              ?
+            </Link>
           </nav>
         )}
       </div>

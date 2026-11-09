@@ -66,6 +66,9 @@ export default async function ProfilePage() {
           <LinkButton href="/historikk" size="sm" variant="secondary">
             Mine kamper
           </LinkButton>
+          <LinkButton href="/hjelp" size="sm" variant="ghost">
+            Hjelp
+          </LinkButton>
         </div>
       </Card>
 
